@@ -1,0 +1,59 @@
+name: "OpenAI Codex PR Review"
+description: "Run codex review on a PR and post a summary, code review, and bug detection as a comment."
+author: "P2ACHAI"
+inputs:
+  github_token:
+    description: "GitHub token to use for posting comments on PRs"
+    required: true
+  openai_api_key:
+    description: "OpenAI API Key"
+    required: true
+  label:
+    description: "Label name to trigger the action (e.g. codex-review)"
+    required: true
+    default: "codex-review"
+  model:
+    description: "OpenAI model to use"
+    required: false
+    default: "o4-mini"
+  language:
+    description: "Language codex will use"
+    required: false
+    default: "english"
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Node.js setting
+      uses: actions/setup-node@v4
+      with:
+        node-version: "18"
+
+    - name: Codex CLI
+      shell: bash
+      run: npm install -g @openai/codex
+
+    - name: Create PR Diff
+      shell: bash
+      run: |
+        git fetch origin ${{ github.event.pull_request.base.ref }}
+        git diff origin/${{ github.event.pull_request.base.ref }} > pr.diff
+
+    - name: Review with Codex
+      shell: bash
+      env:
+        OPENAI_API_KEY: ${{ inputs.openai_api_key }}
+      run: |
+        touch review.md
+        export OPENAI_API_KEY="${{ inputs.openai_api_key }}"
+        PROMPT="Plz review code in this pr. 1) Explain what this PR does\n2) Code review and suggestions for improvement\n3) Detect bugs and potential bugs. \nUpdate in review.md in {{ $inputs.language }} language"
+        codex -q -a auto-edit --model ${{ inputs.model }} "$PROMPT"
+
+    - name: Comments on PR
+      uses: peter-evans/create-or-update-comment@v3
+      with:
+        token: ${{ inputs.github_token }}
+        issue-number: ${{ github.event.pull_request.number }}
+        body-file: review.md
