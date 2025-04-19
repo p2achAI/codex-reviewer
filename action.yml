@@ -42,9 +42,9 @@ runs:
       env:
         OPENAI_API_KEY: ${{ inputs.openai_api_key }}
       run: |
-        npm install -g @openai/codex \
-        touch review.md \
-        export OPENAI_API_KEY="${{ inputs.openai_api_key }}" \
+        npm install -g @openai/codex 
+        touch review.md 
+        export OPENAI_API_KEY="${{ inputs.openai_api_key }}" 
         codex -q -a auto-edit --model ${{ inputs.model }} "Plz review code 1) Explain what this PR does\n2) Code review and suggestions for improvement\n3) Detect bugs and potential bugs. \nUpdate in review.md in ${{ inputs.language }} language"
 
     - name: Comments on PR
