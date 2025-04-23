@@ -42,21 +42,32 @@ runs:
       run: |
         echo "Installing Codex"
         npm install -g @openai/codex@latest 
-        
+
         # Use custom prompt if provided, otherwise use default
         if [ -n "${{ inputs.custom_prompt }}" ]; then
           PROMPT="${{ inputs.custom_prompt }}"
         else
+          touch review.md
+
           BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
           HEAD_BRANCH="${{ github.event.pull_request.head.ref }}"
           echo "Using pr into ${BASE_BRANCH} from ${HEAD_BRANCH} (PR #${{ github.event.pull_request.number }})"
           git fetch origin "${BASE_BRANCH}:${BASE_BRANCH}"
           git fetch origin "${HEAD_BRANCH}:${HEAD_BRANCH}"
           DIFF_CONTENT=$(git diff "${BASE_BRANCH}"..."${HEAD_BRANCH}") > review.diff
-          PROMPT="Please review the code changes in the file review.diff which is the diff between branch ${BASE_BRANCH} and ${HEAD_BRANCH} (PR #${{ github.event.pull_request.number }}). Focus your review on the changes in review.diff, but if you need more context to understand or review the changes, you may refer to related code (such as function/class definitions or usage) in the codebase. \n1) Explain what this PR does\n2) Code review and suggestions for improvement\n3) Detect bugs and potential bugs.\nUpdate in review.md in ${{ inputs.language }} language"
+          PROMPT="Please review the code changes in the file review.diff which is the diff between branch ${BASE_BRANCH} and ${HEAD_BRANCH} (PR #${{ github.event.pull_request.number }}). Focus your review on the changes in review.diff, but if you need more context to understand or review the changes, you may refer to related code (such as function/class definitions or usage) in the codebase. \n1) Explain what this PR does\n2) Code review and suggestions for improvement\n3) Detect bugs and potential bugs.\nFinally, Write review in "review.md" in ${{ inputs.language }} language"
         fi
         
+        # Codex 실행
         codex -q -a auto-edit --model ${{ inputs.model }} "$PROMPT"
+        
+        if [ ! -s review.md ]; then
+          echo "Codex failed to generate review in review.md. Creating default message..." 
+          echo "## Code Review for PR #${{ github.event.pull_request.number }}" > review.md
+          echo "" >> review.md
+          echo "Sorry, the automated review system encountered an issue while analyzing this PR." >> review.md
+          echo "Please try again by re-applying the label \`${{ inputs.label }}\`." >> review.md
+        fi
 
     - name: Comments on PR
       uses: peter-evans/create-or-update-comment@v3
