@@ -40,6 +40,7 @@ runs:
       env:
         OPENAI_API_KEY: ${{ inputs.openai_api_key }}
       run: |
+        echo "Installing Codex"
         npm install -g @openai/codex@latest 
         
         # Use custom prompt if provided, otherwise use default
@@ -48,7 +49,10 @@ runs:
         else
           BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
           HEAD_BRANCH="${{ github.event.pull_request.head.ref }}"
-          PROMPT="Please review the code changes from branch ${BASE_BRANCH} to ${HEAD_BRANCH} (PR #${{ github.event.pull_request.number }}).\n1) Explain what this PR does\n2) Code review and suggestions for improvement\n3) Detect bugs and potential bugs.\nUpdate in review.md in ${{ inputs.language }} language"
+          echo "Using pr into ${BASE_BRANCH} from ${HEAD_BRANCH} (PR #${{ github.event.pull_request.number }})"
+          git fetch origin $BASE_BRANCH
+          DIFF_CONTENT=$(git diff origin/"${BASE_BRANCH}"..."${HEAD_BRANCH}") > review.diff
+          PROMPT="Please review the code changes in the file review.diff which is the diff between branch ${BASE_BRANCH} and ${HEAD_BRANCH} of course you can see the code changes in the PR if you need. (PR #${{ github.event.pull_request.number }}).\n1) Explain what this PR does\n2) Code review and suggestions for improvement\n3) Detect bugs and potential bugs.\nUpdate in review.md in ${{ inputs.language }} language"
         fi
         
         codex -q -a auto-edit --model ${{ inputs.model }} "$PROMPT"
