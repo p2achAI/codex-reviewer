@@ -8,7 +8,6 @@ inputs:
   github_token:
     description: "GitHub token used for posting review comments on PRs"
     required: true
-    default: ${{ secrets.GITHUB_TOKEN }}
   openai_api_key:
     description: "OpenAI API Key for accessing AI models"
     required: true
