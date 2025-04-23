@@ -1,51 +1,61 @@
-name: "OpenAI Codex PR Review"
-description: "Run codex review on a PR and post a summary, code review, and bug detection as a comment."
+name: "Codex Reviewer"
+description: "AI-powered PR review that provides summary, code improvement suggestions, and bug detection as a comment"
 author: "P2ACHAI"
+branding:
+  icon: 'eye'
+  color: 'blue'
 inputs:
   github_token:
-    description: "GitHub token to use for posting comments on PRs"
+    description: "GitHub token used for posting review comments on PRs"
     required: true
+    default: ${{ secrets.GITHUB_TOKEN }}
   openai_api_key:
-    description: "OpenAI API Key"
+    description: "OpenAI API Key for accessing AI models"
     required: true
   label:
-    description: "Label name to trigger the action (e.g. codex-review)"
+    description: "Label name that triggers the review action (e.g. codex-review)"
     required: true
     default: "codex-review"
   model:
-    description: "OpenAI model to use"
+    description: "OpenAI model to use for code review (e.g. o4-mini, gpt-4, etc.)"
     required: false
     default: "o4-mini"
   language:
-    description: "Language codex will use"
+    description: "Language for the review output (e.g. english, korean, japanese, etc.)"
     required: false
     default: "english"
+  custom_prompt:
+    description: "Optional custom prompt to override the default review prompt"
+    required: false
+    default: ""
 runs:
   using: "composite"
   steps:
     - name: Checkout code
       uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
 
-    - name: Node.js setting
+    - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: "18"
-
-    - name: Create PR Diff
-      shell: bash
-      run: |
-        git fetch origin ${{ github.event.pull_request.base.ref }}
-        git diff origin/${{ github.event.pull_request.base.ref }} > pr.diff
 
     - name: Review with Codex
       shell: bash
       env:
         OPENAI_API_KEY: ${{ inputs.openai_api_key }}
       run: |
-        npm install -g @openai/codex 
-        touch review.md 
-        export OPENAI_API_KEY="${{ inputs.openai_api_key }}" 
-        codex -q -a auto-edit --model ${{ inputs.model }} "Plz review code 1) Explain what this PR does\n2) Code review and suggestions for improvement\n3) Detect bugs and potential bugs. \nUpdate in review.md in ${{ inputs.language }} language"
+        npm install -g @openai/codex@latest 
+        
+        # Use custom prompt if provided, otherwise use default
+        if [ -n "${{ inputs.custom_prompt }}" ]; then
+          PROMPT="${{ inputs.custom_prompt }}"
+        else
+          PROMPT="Please review code for current PR branch. 1) Explain what this PR does\n2) Code review and suggestions for improvement\n3) Detect bugs and potential bugs. \nUpdate in review.md in ${{ inputs.language }} language"
+        fi
+        
+        codex -q -a auto-edit --model ${{ inputs.model }} "$PROMPT"
 
     - name: Comments on PR
       uses: peter-evans/create-or-update-comment@v3
