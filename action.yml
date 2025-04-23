@@ -53,7 +53,7 @@ runs:
           git fetch origin "${BASE_BRANCH}:${BASE_BRANCH}"
           git fetch origin "${HEAD_BRANCH}:${HEAD_BRANCH}"
           DIFF_CONTENT=$(git diff "${BASE_BRANCH}"..."${HEAD_BRANCH}") > review.diff
-          PROMPT="Please review the code changes in the file review.diff which is the diff between branch ${BASE_BRANCH} and ${HEAD_BRANCH} of course you can see the code changes in the PR if you need. (PR #${{ github.event.pull_request.number }}).\n1) Explain what this PR does\n2) Code review and suggestions for improvement\n3) Detect bugs and potential bugs.\nUpdate in review.md in ${{ inputs.language }} language"
+          PROMPT="Please review the code changes in the file review.diff which is the diff between branch ${BASE_BRANCH} and ${HEAD_BRANCH} (PR #${{ github.event.pull_request.number }}). Focus your review on the changes in review.diff, but if you need more context to understand or review the changes, you may refer to related code (such as function/class definitions or usage) in the codebase. \n1) Explain what this PR does\n2) Code review and suggestions for improvement\n3) Detect bugs and potential bugs.\nUpdate in review.md in ${{ inputs.language }} language"
         fi
         
         codex -q -a auto-edit --model ${{ inputs.model }} "$PROMPT"
