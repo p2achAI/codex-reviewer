@@ -54,14 +54,19 @@ runs:
           echo "Using pr into ${BASE_BRANCH} from ${HEAD_BRANCH} (PR #${{ github.event.pull_request.number }})"
           git fetch origin "${BASE_BRANCH}:${BASE_BRANCH}"
           git fetch origin "${HEAD_BRANCH}:${HEAD_BRANCH}"
-          DIFF_CONTENT=$(git diff "${BASE_BRANCH}"..."${HEAD_BRANCH}") > pr.diff
+          git diff "${BASE_BRANCH}"..."${HEAD_BRANCH}" > pr.diff
+          echo "head -n 50 pr.diff"
+          head -n 50 pr.diff
+
           PROMPT="Please review the code changes in the file pr.diff which is the diff between branch ${BASE_BRANCH} and ${HEAD_BRANCH} (PR #${{ github.event.pull_request.number }}). Focus your review on the changes in pr.diff, but if you need more context to understand or review the changes, you may refer to related code (such as function/class definitions or usage) in the codebase. \n1) Explain what this PR does\n2) Code review and suggestions for improvement\n3) Detect bugs and potential bugs.\nFinally, Write review in "review.md" in ${{ inputs.language }} language"
         fi
+        
         
         # Run Codex
         codex -q -a auto-edit --model ${{ inputs.model }} "$PROMPT"
         
         # Print review.md
+        echo "cat review.md"
         cat review.md
         
         if [ ! -s review.md ]; then
