@@ -26,6 +26,10 @@ on:
 
 jobs:
   review:
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
     runs-on: ubuntu-latest
     if: github.event.label.name == 'codex-review'
     steps:

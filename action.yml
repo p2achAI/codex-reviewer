@@ -30,11 +30,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
@@ -51,7 +46,9 @@ runs:
         if [ -n "${{ inputs.custom_prompt }}" ]; then
           PROMPT="${{ inputs.custom_prompt }}"
         else
-          PROMPT="Please review code for current PR branch. 1) Explain what this PR does\n2) Code review and suggestions for improvement\n3) Detect bugs and potential bugs. \nUpdate in review.md in ${{ inputs.language }} language"
+          BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
+          HEAD_BRANCH="${{ github.event.pull_request.head.ref }}"
+          PROMPT="Please review the code changes from branch ${BASE_BRANCH} to ${HEAD_BRANCH} (PR #${{ github.event.pull_request.number }}).\n1) Explain what this PR does\n2) Code review and suggestions for improvement\n3) Detect bugs and potential bugs.\nUpdate in review.md in ${{ inputs.language }} language"
         fi
         
         codex -q -a auto-edit --model ${{ inputs.model }} "$PROMPT"
