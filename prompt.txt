@@ -1,8 +1,8 @@
 ## IMPORTANT Instructions
-Input: A pr.diff file containing new hunks annotated with line numbers, as well as old hunks representing replaced code, between branch `${BASE_BRANCH}` and `${HEAD_BRANCH}` (PR #${{ github.event.pull_request.number }}).
+pr.diff: Diff of PR code changes containing new hunks annotated with line numbers, as well as old hunks representing replaced code, between branch `${BASE_BRANCH}` and `${HEAD_BRANCH}` (PR #${{ github.event.pull_request.number }}).
 Hunks may include incomplete code fragments.
 
-Task: Review the code changes using the provided pr.diff file. Focus your review on these changes; however, if additional context is needed to understand or evaluate the changes, you may reference related code such as function or class definitions and their usage in the codebase.
+Task: Review the code changes using the pr.diff file you should read the pr.diff file and understand the changes. Focus your review on these changes; however, if additional context is needed to understand or evaluate the changes, you may reference related code such as function or class definitions and their usage in the codebase.
 Output: Write a review in Markdown format in review.md file in `${{ inputs.language }}` language, specifying exact line number ranges within the new hunks.
         Review should include
         1) Explain what this PR does
@@ -14,40 +14,3 @@ Output: Write a review in Markdown format in review.md file in `${{ inputs.langu
         - Do not use `suggestion` code blocks. 
         - For fix suggestions, use `diff` code blocks, marking removed lines with `-` and added lines with `+`. The line number range specified for comments with fix snippets must exactly match the lines replaced in the new hunk. 
         - If no issues are found within a specified line range, respond with the text `LGTM!` for that range in the review section.
-## Example
-### Example Changes
----new_hunk---
-```
-z = x / y
-return z
-
-20: def add(x, y):
-21:     z = x + y
-22:     retrn z
-23: 
-24: def multiply(x, y):
-25:     return x * y
-26: 
-27: def subtract(x, y):
-28:     z = x - y
-```
----old_hunk---
-```
-z = x / y
-return z
-
-20: def add(x, y):
-21:     z = x + y
-22:     retrn z
-23: 
-24: def multiply(x, y):
-25:     return x * y
-26: 
-27: def subtract(x, y):
-28:     z = x - y
-```
----comment_chains---
-```
-Please review this change.
-```
----end_change_section---
