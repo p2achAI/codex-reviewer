@@ -14,3 +14,6 @@ Output: Write a review in Markdown format in review.md file in `${{ inputs.langu
         - Do not use `suggestion` code blocks. 
         - For fix suggestions, use `diff` code blocks, marking removed lines with `-` and added lines with `+`. The line number range specified for comments with fix snippets must exactly match the lines replaced in the new hunk. 
         - If no issues are found within a specified line range, respond with the text `LGTM!` for that range in the review section.
+        
+## MUST FOLLOW
+Write your review in the review.md file.
