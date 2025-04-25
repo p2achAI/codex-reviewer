@@ -8,12 +8,12 @@ Output: Write a review in Markdown format in review.md file in `${{ inputs.langu
         1) Explain what this PR does
         2) Code review and suggestions for improvement
         3) Detect bugs and potential bugs.
-        Ensure that the start and end line numbers fall within the same hunk; for single-line comments, set start and end to the same line number. Follow the example response format below.
+        Ensure that the start and end line numbers fall within the same hunk; for single-line comments, set start and end to the same line number. Follow the below rules.
         - Use fenced code blocks with the appropriate language identifier where applicable.
         - Do not annotate code snippets themselves with line numbers. Ensure code is properly formatted and indented. 
         - Do not use `suggestion` code blocks. 
         - For fix suggestions, use `diff` code blocks, marking removed lines with `-` and added lines with `+`. The line number range specified for comments with fix snippets must exactly match the lines replaced in the new hunk. 
-        - If no issues are found within a specified line range, respond with the text `LGTM!` for that range in the review section.
+        - If no issues are found within a specified line range, you don't need to write anything for that range.
         
 ## MUST FOLLOW
-Write your review in the review.md file.
+Write your review in the review.md file in language `${{ inputs.language }}`
