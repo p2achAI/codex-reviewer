@@ -59,6 +59,14 @@ runs:
           head -n 10 pr.diff
         fi
         
+        # Ensure prompt.txt is found by specifying its location within the action
+        echo "Looking for prompt.txt in action directory"
+        ls -la $GITHUB_ACTION_PATH
+        
+        # Use the prompt.txt from the action's directory
+        cp $GITHUB_ACTION_PATH/prompt.txt ./prompt.txt || echo "Warning: prompt.txt not found in action directory"
+        
+        cat prompt.txt
         
         # Run Codex
         codex -q -a auto-edit --model ${{ inputs.model }} "$(cat prompt.txt)"
