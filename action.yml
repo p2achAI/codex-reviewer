@@ -43,37 +43,32 @@ runs:
         echo "Installing Codex"
         npm install -g @openai/codex@latest 
 
+        touch review.md
+
+        BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
+        HEAD_BRANCH="${{ github.event.pull_request.head.ref }}"
+        echo "Using pr into ${BASE_BRANCH} from ${HEAD_BRANCH} (PR #${{ github.event.pull_request.number }})"
+        git fetch origin "${BASE_BRANCH}:${BASE_BRANCH}"
+        git fetch origin "${HEAD_BRANCH}:${HEAD_BRANCH}"
+        git diff "${BASE_BRANCH}"..."${HEAD_BRANCH}" > pr.diff
+        echo "head -n 10 pr.diff"
+        head -n 10 pr.diff
+
+
         # Use custom prompt if provided, otherwise use default
         if [ -n "${{ inputs.custom_prompt }}" ]; then
-          PROMPT="${{ inputs.custom_prompt }}"
+          echo "${{ inputs.custom_prompt }}" > prompt.txt
         else
-          touch review.md
-
-          BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
-          HEAD_BRANCH="${{ github.event.pull_request.head.ref }}"
-          echo "Using pr into ${BASE_BRANCH} from ${HEAD_BRANCH} (PR #${{ github.event.pull_request.number }})"
-          git fetch origin "${BASE_BRANCH}:${BASE_BRANCH}"
-          git fetch origin "${HEAD_BRANCH}:${HEAD_BRANCH}"
-          git diff "${BASE_BRANCH}"..."${HEAD_BRANCH}" > pr.diff
-          echo "head -n 10 pr.diff"
-          head -n 10 pr.diff
+          echo "Looking for prompt.txt in action directory"
+          ls -la $GITHUB_ACTION_PATH
+          # Copy prompt.txt from action directory to current workspace
+          cp $GITHUB_ACTION_PATH/prompt.txt ./prompt.txt || echo "Warning: prompt.txt not found in action directory"
         fi
-        
-        # Ensure prompt.txt is found by specifying its location within the action
-        echo "Looking for prompt.txt in action directory"
-        ls -la $GITHUB_ACTION_PATH
-        
-        # Use the prompt.txt from the action's directory
-        cp $GITHUB_ACTION_PATH/prompt.txt ./prompt.txt || echo "Warning: prompt.txt not found in action directory"
         
         cat prompt.txt
         
         # Run Codex
-        codex -q -a auto-edit --model ${{ inputs.model }} "$(cat prompt.txt)"
-        
-        # Print review.md
-        echo "cat review.md"
-        cat review.md
+        codex -q -a auto-edit --model ${{ inputs.model }} "$(cat prompt.txt) and write your review in ${inputs.language} language."
         
         if [ ! -s review.md ]; then
           echo "Codex failed to generate review in review.md. Creating default message..." 
