@@ -65,10 +65,13 @@ runs:
           cp $GITHUB_ACTION_PATH/prompt.txt ./prompt.txt || echo "Warning: prompt.txt not found in action directory"
         fi
         
+        # Replace LANGUAGE with the specified language input
+        sed -i 's/LANGUAGE/${{ inputs.language }}/g' prompt.txt
+        
         cat prompt.txt
         
         # Run Codex
-        codex -q -a auto-edit --model ${{ inputs.model }} "$(cat prompt.txt) and write your review in ${inputs.language} language."
+        codex -q -a auto-edit --model ${{ inputs.model }} "$(cat prompt.txt)"
         
         if [ ! -s review.md ]; then
           echo "Codex failed to generate review in review.md. Creating default message..." 

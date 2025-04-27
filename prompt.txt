@@ -3,7 +3,7 @@ pr.diff: Diff of PR code changes containing new hunks annotated with line number
 Hunks may include incomplete code fragments.
 
 Task: Review the code changes using the pr.diff file you should read the pr.diff file and understand the changes. Focus your review on these changes; however, if additional context is needed to understand or evaluate the changes, you may reference related code such as function or class definitions and their usage in the codebase.
-Output: Write a review in Markdown format in review.md file, specifying exact line number ranges within the new hunks.
+Output: Write a review in Markdown format in review.md file in LANGUAGE, specifying exact line number ranges within the new hunks.
         Review should include
         1) Explain what this PR does
         2) Code review and suggestions for improvement
@@ -16,4 +16,4 @@ Output: Write a review in Markdown format in review.md file, specifying exact li
         - If no issues are found within a specified line range, you don't need to write anything for that range.
         
 ## MUST FOLLOW
-Write your review in the review.md file.
+Write your review in the review.md file in LANGUAGE.
