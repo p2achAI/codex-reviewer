@@ -53,7 +53,7 @@ jobs:
 | `github_token` | GitHub token | ✅ | |
 | `openai_api_key` | OpenAI API Key | ✅ | |
 | `label` | Review trigger label | ✅ | `codex-review` |
-| `model` | OpenAI model to use | ❌ | `o4-mini` |
+| `model` | OpenAI model to use | ❌ | `codex-mini-latest` |
 | `language` | Review language | ❌ | `english` |
 | `custom_prompt` | Custom review prompt | ❌ | |
 
