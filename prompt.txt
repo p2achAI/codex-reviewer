@@ -1,6 +1,7 @@
 ## IMPORTANT Instructions
 pr.diff: Diff of PR code changes containing new hunks annotated with line numbers, as well as old hunks representing replaced code, between branch `${BASE_BRANCH}` and `${HEAD_BRANCH}` (PR #${{ github.event.pull_request.number }}).
 Hunks may include incomplete code fragments.
+Before proceeding, check if an `AGENTS.md` file exists in the repository. If it does, use it as an additional guide. If not, continue with this prompt.
 
 Task: Review the code changes using the pr.diff file you should read the pr.diff file and understand the changes. Focus your review on these changes; however, if additional context is needed to understand or evaluate the changes, you may reference related code such as function or class definitions and their usage in the codebase.
 Output: Write a review in Markdown format in review.md file in LANGUAGE, specifying exact line number ranges within the new hunks.
