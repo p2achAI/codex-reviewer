@@ -4,6 +4,7 @@ You will be given multiple agent reviews in Markdown files. Combine them into a 
 Input files:
 {{AGENT_FILES}}
 comments.md: PR comments captured from the GitHub API. Use this only to resolve ambiguity or conflicts.
+pr_description.md: PR description (body) captured from the GitHub API. Use this only to resolve ambiguity or conflicts.
 
 Task: Merge and de-duplicate findings. Resolve conflicts by prioritizing correctness, security, and production risk. Keep the review concise but complete.
 Output: Write the final review in Markdown format in review.md in {{LANGUAGE}}, specifying exact line number ranges within the new hunks.

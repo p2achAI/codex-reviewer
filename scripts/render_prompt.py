@@ -19,6 +19,7 @@ replacements = {
     "CUSTOM_INSTRUCTIONS": os.getenv("CUSTOM_INSTRUCTIONS", "").strip(),
     "AGENT_FILES": os.getenv("AGENT_FILES", ""),
     "COMMENTS_FILE": os.getenv("COMMENTS_FILE", ""),
+    "PR_DESCRIPTION_FILE": os.getenv("PR_DESCRIPTION_FILE", ""),
 }
 
 for key, value in replacements.items():

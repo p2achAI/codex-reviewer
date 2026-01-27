@@ -99,6 +99,7 @@ Task linked: [PR-1588 Wifi 대시보드 기술 기획](https://app.clickup.com/t
 ```
 
 PR 코멘트 전문은 `comments.md`로 저장되며, 에이전트들이 참고 컨텍스트로 사용할 수 있습니다.
+PR 설명은 `pr_description.md`로 저장되어 기획문서 준수 에이전트가 함께 참고합니다.
 
 ## License
 

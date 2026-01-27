@@ -2,10 +2,11 @@
 pr.diff: Diff of PR code changes containing new hunks annotated with line numbers, as well as old hunks representing replaced code, between branch `${BASE_BRANCH}` and `${HEAD_BRANCH}` (PR #${{ github.event.pull_request.number }}).
 Hunks may include incomplete code fragments.
 comments.md: PR comments captured from the GitHub API. Use this for additional context, clarifications, and constraints.
+pr_description.md: PR description (body) captured from the GitHub API. Use this for intent and scope.
 
 Role: {{ROLE}}
 Task: Review the code changes using the pr.diff file. Focus only on issues relevant to your role. If additional context is needed to understand or evaluate the changes, you may reference related code such as function or class definitions and their usage in the codebase.
-You may also reference comments.md for context from reviewers or authors; treat it as guidance, not source of truth.
+You may also reference comments.md and pr_description.md for context from reviewers or authors; treat them as guidance, not source of truth.
 Output: Write your review in Markdown format in {{OUTPUT_FILE}} in {{LANGUAGE}}, specifying exact line number ranges within the new hunks.
         Your output should include:
         1) What this PR does (role-focused, concise)

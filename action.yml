@@ -138,7 +138,10 @@ runs:
             echo "Searching PR comments for spec URL with marker: ${SPEC_MARKER}"
             COMMENTS_JSON=$(curl -sS -H "Authorization: token ${GITHUB_TOKEN}" -H "Accept: application/vnd.github+json" \
               "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/issues/${{ github.event.pull_request.number }}/comments") || true
+            PR_JSON=$(curl -sS -H "Authorization: token ${GITHUB_TOKEN}" -H "Accept: application/vnd.github+json" \
+              "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/pulls/${{ github.event.pull_request.number }}") || true
             echo "${COMMENTS_JSON}" | python "$GITHUB_ACTION_PATH/scripts/comments_to_md.py" > comments.md || echo "Warning: failed to render comments.md"
+            echo "${PR_JSON}" | python "$GITHUB_ACTION_PATH/scripts/pr_body_to_md.py" > pr_description.md || echo "Warning: failed to render pr_description.md"
             SPEC_URL=$(echo "${COMMENTS_JSON}" | SPEC_COMMENT_MARKER="${SPEC_MARKER}" python "$GITHUB_ACTION_PATH/scripts/find_spec_url.py" || true)
           fi
 
@@ -158,6 +161,9 @@ runs:
           if [ ! -f comments.md ]; then
             : > comments.md
           fi
+          if [ ! -f pr_description.md ]; then
+            : > pr_description.md
+          fi
 
           AGENT_FILES=""
           while IFS='|' read -r agent_name agent_role agent_prompt; do
@@ -174,6 +180,7 @@ runs:
 
             ROLE="${agent_role}" OUTPUT_FILE="${OUTPUT_FILE}" LANGUAGE="${{ inputs.language }}" CUSTOM_INSTRUCTIONS="${CUSTOM_PROMPT}" \
               COMMENTS_FILE="comments.md" \
+              PR_DESCRIPTION_FILE="pr_description.md" \
               python "$GITHUB_ACTION_PATH/scripts/render_prompt.py" "${PROMPT_TEMPLATE}" "prompts_rendered/${agent_name}.txt"
 
             echo "Running agent: ${agent_name} (${agent_role})"
@@ -196,6 +203,7 @@ runs:
 
             AGENT_FILES="${AGENT_FILES}" LANGUAGE="${{ inputs.language }}" CUSTOM_INSTRUCTIONS="${CUSTOM_PROMPT}" \
               COMMENTS_FILE="comments.md" \
+              PR_DESCRIPTION_FILE="pr_description.md" \
               python "$GITHUB_ACTION_PATH/scripts/render_prompt.py" "${AGG_PROMPT}" "prompts_rendered/aggregate.txt"
 
             echo "Running aggregate agent"
