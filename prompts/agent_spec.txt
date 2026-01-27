@@ -13,6 +13,11 @@ Output: Write your review in Markdown format in {{OUTPUT_FILE}} in {{LANGUAGE}},
         1) What this PR does relative to the spec (concise)
         2) Mismatches or missing requirements (with line ranges)
         3) Potential bugs or regressions relative to the spec
+        4) For every issue, include severity tags using P0/P1/P2/P3:
+           - P0: 서비스 중단/데이터 손실/보안 치명
+           - P1: 핵심 기능 장애/심각한 오류
+           - P2: 우회 가능/중간 수준 문제
+           - P3: 경미한 개선/스타일/권장사항
         Follow the below rules.
         - Use fenced code blocks with the appropriate language identifier where applicable.
         - Do not annotate code snippets themselves with line numbers. Ensure code is properly formatted and indented.
