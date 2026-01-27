@@ -124,8 +124,8 @@ runs:
           
           cat prompt.txt
           
-          # Run Codex
-          codex -q -a auto-edit --model ${{ inputs.model }} "$(cat prompt.txt)"
+          # Run Codex (non-interactive)
+          codex exec --full-auto -m ${{ inputs.model }} - < prompt.txt
         else
           echo "Multi-agent mode enabled"
           mkdir -p reviews prompts_rendered
@@ -176,7 +176,7 @@ runs:
               python "$GITHUB_ACTION_PATH/scripts/render_prompt.py" "${PROMPT_TEMPLATE}" "prompts_rendered/${agent_name}.txt"
 
             echo "Running agent: ${agent_name} (${agent_role})"
-            codex -q -a auto-edit --model ${{ inputs.model }} "$(cat prompts_rendered/${agent_name}.txt)" || \
+            codex exec --full-auto -m ${{ inputs.model }} - < prompts_rendered/${agent_name}.txt || \
               echo "Warning: agent ${agent_name} failed."
 
             if [ -s "${OUTPUT_FILE}" ]; then
@@ -198,7 +198,7 @@ runs:
               python "$GITHUB_ACTION_PATH/scripts/render_prompt.py" "${AGG_PROMPT}" "prompts_rendered/aggregate.txt"
 
             echo "Running aggregate agent"
-            codex -q -a auto-edit --model ${{ inputs.model }} "$(cat prompts_rendered/aggregate.txt)" || \
+            codex exec --full-auto -m ${{ inputs.model }} - < prompts_rendered/aggregate.txt || \
               echo "Warning: aggregate agent failed."
           fi
         fi
