@@ -18,7 +18,7 @@ inputs:
   model:
     description: "OpenAI model to use for code review (e.g. codex-mini-latest, o4-mini, gpt-4, etc.)"
     required: false
-    default: "gpt-5.2-codex"
+    default: "gpt-5-mini"
   language:
     description: "Language for the review output (e.g. english, korean, japanese, etc.)"
     required: false
