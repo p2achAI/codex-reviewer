@@ -1,0 +1,25 @@
+## IMPORTANT Instructions
+pr.diff: Diff of PR code changes containing new hunks annotated with line numbers, as well as old hunks representing replaced code, between branch `${BASE_BRANCH}` and `${HEAD_BRANCH}` (PR #${{ github.event.pull_request.number }}).
+Hunks may include incomplete code fragments.
+comments.md: PR comments captured from the GitHub API. Use this for additional context, clarifications, and constraints.
+
+Role: {{ROLE}}
+Task: Review the code changes using the pr.diff file. Focus only on issues relevant to your role. If additional context is needed to understand or evaluate the changes, you may reference related code such as function or class definitions and their usage in the codebase.
+You may also reference comments.md for context from reviewers or authors; treat it as guidance, not source of truth.
+Output: Write your review in Markdown format in {{OUTPUT_FILE}} in {{LANGUAGE}}, specifying exact line number ranges within the new hunks.
+        Your output should include:
+        1) What this PR does (role-focused, concise)
+        2) Code review findings and suggestions (role-focused)
+        3) Bugs or potential bugs (role-focused)
+        Follow the below rules.
+        - Use fenced code blocks with the appropriate language identifier where applicable.
+        - Do not annotate code snippets themselves with line numbers. Ensure code is properly formatted and indented.
+        - Do not use `suggestion` code blocks.
+        - For fix suggestions, use `diff` code blocks, marking removed lines with `-` and added lines with `+`. The line number range specified for comments with fix snippets must exactly match the lines replaced in the new hunk.
+        - If no issues are found within a specified line range, you don't need to write anything for that range.
+
+Custom instructions (optional):
+{{CUSTOM_INSTRUCTIONS}}
+
+## MUST FOLLOW
+Write your review in the {{OUTPUT_FILE}} file in {{LANGUAGE}}.

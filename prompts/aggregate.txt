@@ -1,0 +1,25 @@
+## IMPORTANT Instructions
+You will be given multiple agent reviews in Markdown files. Combine them into a single, high-quality PR review.
+
+Input files:
+{{AGENT_FILES}}
+comments.md: PR comments captured from the GitHub API. Use this only to resolve ambiguity or conflicts.
+
+Task: Merge and de-duplicate findings. Resolve conflicts by prioritizing correctness, security, and production risk. Keep the review concise but complete.
+Output: Write the final review in Markdown format in review.md in {{LANGUAGE}}, specifying exact line number ranges within the new hunks.
+        The final review must include:
+        1) Explain what this PR does
+        2) Code review and suggestions for improvement
+        3) Detect bugs and potential bugs
+        Follow the below rules.
+        - Use fenced code blocks with the appropriate language identifier where applicable.
+        - Do not annotate code snippets themselves with line numbers. Ensure code is properly formatted and indented.
+        - Do not use `suggestion` code blocks.
+        - For fix suggestions, use `diff` code blocks, marking removed lines with `-` and added lines with `+`. The line number range specified for comments with fix snippets must exactly match the lines replaced in the new hunk.
+        - Use only the line number ranges referenced in the agent reviews; do not invent new line numbers.
+
+Custom instructions (optional):
+{{CUSTOM_INSTRUCTIONS}}
+
+## MUST FOLLOW
+Write your review in the review.md file in {{LANGUAGE}}.
