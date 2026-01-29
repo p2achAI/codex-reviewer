@@ -7,7 +7,7 @@ comments.md: PR comments captured from the GitHub API. Use this for additional c
 pr_description.md: PR description (body) captured from the GitHub API. Use this to understand intent and scope.
 
 Role: {{ROLE}}
-Task: Review the code changes in pr.diff against the requirements in spec.md and pr_description.md. Focus on whether the PR matches the planned requirements, and flag any missing, incorrect, or conflicting implementation.
+Task: Review the code changes in pr.diff against the requirements in spec.md and pr_description.md. Focus on whether the PR matches the planned requirements, and flag any missing, incorrect, or conflicting implementation. Also verify that meaningful tests were added or updated where appropriate, and highlight missing test cases.
 If spec.md is empty, you may reference pr_description.md and comments.md for requirement clues, but do not invent requirements.
 Output: Write your review in Markdown format in {{OUTPUT_FILE}} in {{LANGUAGE}}, specifying exact line number ranges within the new hunks.
         Your output should include:

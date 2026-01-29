@@ -188,7 +188,7 @@ runs:
           ACTIVE_AGENTS=""
           case "${TRIGGER_LABEL}" in
             "${SPEC_LABEL}")
-              ACTIVE_AGENTS="spec testing"
+              ACTIVE_AGENTS="spec"
               ;;
             "${PERFSEC_LABEL}")
               ACTIVE_AGENTS="perfsec"

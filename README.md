@@ -86,7 +86,7 @@ jobs:
 
 ### Label-based Agents
 
-- `spec_label` (default `codex-review`): runs **Spec + Tests** agents
+- `spec_label` (default `codex-review`): runs **Spec + Tests** in a single agent
 - `perfsec_label` (default `codex-review-perf`): runs **Performance/Security** agent
 - `bug_label` (default `codex-review-bug`): runs **Correctness/Bug** agent
 
