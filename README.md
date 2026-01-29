@@ -62,6 +62,9 @@ jobs:
 | `github_token` | GitHub token | ✅ | |
 | `openai_api_key` | OpenAI API Key | ✅ | |
 | `label` | Review trigger label | ✅ | `codex-review` |
+| `spec_label` | Label for spec+tests review | ❌ | `codex-review` |
+| `perfsec_label` | Label for performance/security review | ❌ | `codex-review-spec` |
+| `bug_label` | Label for correctness/bug review | ❌ | `codex-review-bug` |
 | `model` | OpenAI model to use | ❌ | `codex-mini-latest` |
 | `language` | Review language | ❌ | `english` |
 | `custom_prompt` | Custom review prompt | ❌ | |
@@ -80,6 +83,12 @@ jobs:
 2. It analyzes the code changes in the PR.
 3. Using an OpenAI model, it generates a comprehensive code review.
 4. The review is automatically posted as a comment on the PR.
+
+### Label-based Agents
+
+- `spec_label` (default `codex-review`): runs **Spec + Tests** agents
+- `perfsec_label` (default `codex-review-spec`): runs **Performance/Security** agent
+- `bug_label` (default `codex-review-bug`): runs **Correctness/Bug** agent
 
 ### Spec Compliance (ClickUp)
 

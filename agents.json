@@ -1,6 +1,7 @@
 {
   "agents": [
     {"name": "logic", "role": "정합성/버그", "prompt": "prompts/agent_base.txt"},
+    {"name": "testing", "role": "테스트", "prompt": "prompts/agent_base.txt"},
     {"name": "perfsec", "role": "성능/보안", "prompt": "prompts/agent_base.txt"},
     {"name": "spec", "role": "기획문서 준수(ClickUp + PR description)", "prompt": "prompts/agent_spec.txt"}
   ],

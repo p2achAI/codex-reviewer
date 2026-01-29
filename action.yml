@@ -15,6 +15,18 @@ inputs:
     description: "Label name that triggers the review action (e.g. codex-review)"
     required: true
     default: "codex-review"
+  spec_label:
+    description: "Label for spec+tests review"
+    required: false
+    default: "codex-review"
+  perfsec_label:
+    description: "Label for performance/security review"
+    required: false
+    default: "codex-review-spec"
+  bug_label:
+    description: "Label for correctness/bug review"
+    required: false
+    default: "codex-review-bug"
   model:
     description: "OpenAI model to use for code review (e.g. codex-mini-latest, o4-mini, gpt-4, etc.)"
     required: false
@@ -98,6 +110,14 @@ runs:
         CLICKUP_API_TOKEN="${{ inputs.clickup_api_token }}"
         CLICKUP_TEAM_ID="${{ inputs.clickup_team_id }}"
         CLICKUP_CUSTOM_TASK_IDS="${{ inputs.clickup_custom_task_ids }}"
+        SPEC_LABEL="${{ inputs.spec_label }}"
+        PERFSEC_LABEL="${{ inputs.perfsec_label }}"
+        BUG_LABEL="${{ inputs.bug_label }}"
+        TRIGGER_LABEL="${{ github.event.label.name }}"
+
+        if [ -z "${TRIGGER_LABEL}" ]; then
+          TRIGGER_LABEL="${{ inputs.label }}"
+        fi
 
         if [ -z "${AGENTS_PATH}" ]; then
           AGENTS_PATH="agents.json"
@@ -165,9 +185,29 @@ runs:
             : > pr_description.md
           fi
 
+          ACTIVE_AGENTS=""
+          case "${TRIGGER_LABEL}" in
+            "${SPEC_LABEL}")
+              ACTIVE_AGENTS="spec testing"
+              ;;
+            "${PERFSEC_LABEL}")
+              ACTIVE_AGENTS="perfsec"
+              ;;
+            "${BUG_LABEL}")
+              ACTIVE_AGENTS="logic"
+              ;;
+            *)
+              ACTIVE_AGENTS="spec testing"
+              ;;
+          esac
+
           AGENT_FILES=""
           while IFS='|' read -r agent_name agent_role agent_prompt; do
             if [ -z "${agent_name}" ] || [ -z "${agent_prompt}" ]; then
+              continue
+            fi
+
+            if ! echo " ${ACTIVE_AGENTS} " | grep -q " ${agent_name} "; then
               continue
             fi
 
@@ -217,7 +257,7 @@ runs:
           echo "## Code Review for PR #${{ github.event.pull_request.number }}" > review.md
           echo "" >> review.md
           echo "Sorry, the automated review system encountered an issue while analyzing this PR." >> review.md
-          echo "Please try again by re-applying the label \`${{ inputs.label }}\`." >> review.md
+          echo "Please try again by re-applying the label \`${TRIGGER_LABEL:-${{ inputs.label }}}\`." >> review.md
         fi
 
     - name: Comments on PR
