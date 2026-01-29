@@ -22,7 +22,7 @@ inputs:
   perfsec_label:
     description: "Label for performance/security review"
     required: false
-    default: "codex-review-spec"
+    default: "codex-review-perf"
   bug_label:
     description: "Label for correctness/bug review"
     required: false

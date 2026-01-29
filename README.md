@@ -63,7 +63,7 @@ jobs:
 | `openai_api_key` | OpenAI API Key | ✅ | |
 | `label` | Review trigger label | ✅ | `codex-review` |
 | `spec_label` | Label for spec+tests review | ❌ | `codex-review` |
-| `perfsec_label` | Label for performance/security review | ❌ | `codex-review-spec` |
+| `perfsec_label` | Label for performance/security review | ❌ | `codex-review-perf` |
 | `bug_label` | Label for correctness/bug review | ❌ | `codex-review-bug` |
 | `model` | OpenAI model to use | ❌ | `codex-mini-latest` |
 | `language` | Review language | ❌ | `english` |
@@ -87,7 +87,7 @@ jobs:
 ### Label-based Agents
 
 - `spec_label` (default `codex-review`): runs **Spec + Tests** agents
-- `perfsec_label` (default `codex-review-spec`): runs **Performance/Security** agent
+- `perfsec_label` (default `codex-review-perf`): runs **Performance/Security** agent
 - `bug_label` (default `codex-review-bug`): runs **Correctness/Bug** agent
 
 ### Spec Compliance (ClickUp)
