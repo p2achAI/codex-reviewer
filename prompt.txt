@@ -10,10 +10,10 @@ Output: Write a review in Markdown format in review.md file in LANGUAGE, specify
         2) Code review and suggestions for improvement
         3) Detect bugs and potential bugs.
         Ensure that the start and end line numbers fall within the same hunk; for single-line comments, set start and end to the same line number. Follow the below rules.
-        - Use fenced code blocks with the appropriate language identifier where applicable.
-        - Do not annotate code snippets themselves with line numbers. Ensure code is properly formatted and indented. 
-        - Do not use `suggestion` code blocks. 
-        - For fix suggestions, use `diff` code blocks, marking removed lines with `-` and added lines with `+`. The line number range specified for comments with fix snippets must exactly match the lines replaced in the new hunk. 
+        - Do not use any fenced code blocks (```).
+        - Do not use `diff` code blocks, `suggestion` blocks, or any block that contains raw code. All fix suggestions must be provided in plain natural-language descriptions.
+        - When referring to locations to change, specify file paths and line ranges, but do NOT include inline code snippets or code blocks — describe the change in prose (what to remove, rename, or change, and why).
+        - Do not annotate code snippets themselves with line numbers. Ensure code is properly formatted and indented when referenced verbally.
         - If no issues are found within a specified line range, you don't need to write anything for that range.
         
 ## MUST FOLLOW

@@ -18,10 +18,9 @@ Output: Write your review in Markdown format in {{OUTPUT_FILE}} in {{LANGUAGE}},
            - P2: 우회 가능/중간 수준 문제
            - P3: 경미한 개선/스타일/권장사항
         Follow the below rules.
-        - Use fenced code blocks with the appropriate language identifier where applicable.
-        - Do not annotate code snippets themselves with line numbers. Ensure code is properly formatted and indented.
-        - Do not use `suggestion` code blocks.
-        - For fix suggestions, use `diff` code blocks, marking removed lines with `-` and added lines with `+`. The line number range specified for comments with fix snippets must exactly match the lines replaced in the new hunk.
+        - Do not use any fenced code blocks (```).
+        - Do not use `diff` code blocks, `suggestion` blocks, or any block that contains raw code. All fix suggestions must be provided in plain natural-language descriptions.
+        - Do not annotate code snippets themselves with line numbers. Ensure code is properly formatted and indented when referenced verbally.
         - If no issues are found within a specified line range, you don't need to write anything for that range.
 
 Custom instructions (optional):
