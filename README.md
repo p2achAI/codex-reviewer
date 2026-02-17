@@ -100,6 +100,8 @@ SPEC: https://app.clickup.com/t/ABC-123
 
 Note: ClickUp Docs content is not currently accessible via the public API, so the spec agent expects a ClickUp task URL (or a summary in PR comments).
 If the URL follows `https://app.clickup.com/t/{workspace_id}/{task_id_or_custom}`, the fetcher will infer the workspace ID and automatically enable custom task IDs when the ID is non-numeric. You can still force behavior with `clickup_team_id` and `clickup_custom_task_ids`.
+If the task has parent tasks, the fetcher traverses and includes the full parent chain (nearest parent to root) in `spec.md`.
+If parent fetching partially fails (for example permission denied or missing parent), the child task content is still kept and warnings are appended under `Parent Fetch Warnings`.
 
 The action also scans PR comments for ClickUp links without a marker. For example:
 
