@@ -6,16 +6,19 @@ The file `pr.diff` is available in the current workspace. Read it directly befor
 
 Task: Review the code changes using the pr.diff file you should read the pr.diff file and understand the changes. Focus your review on these changes; however, if additional context is needed to understand or evaluate the changes, you may reference related code such as function or class definitions and their usage in the codebase.
 Output: Respond with only the final review body in Markdown in LANGUAGE, specifying exact line number ranges within the new hunks.
-        Review should include
-        1) Explain what this PR does
-        2) Code review and suggestions for improvement
-        3) Detect bugs and potential bugs.
+        Review should include exactly these sections:
+        1) `## 이 PR이 하는 일`
+        2) `## 리뷰`
         Ensure that the start and end line numbers fall within the same hunk; for single-line comments, set start and end to the same line number. Follow the below rules.
         - Do not use any fenced code blocks (```).
         - Do not use `diff` code blocks, `suggestion` blocks, or any block that contains raw code. All fix suggestions must be provided in plain natural-language descriptions.
+        - In `## 이 PR이 하는 일`, write 1-3 short bullets describing only what the PR changes.
+        - In `## 리뷰`, include only actionable review findings that have a severity tag.
+        - Every finding must start with a severity tag and an exact location in this format: `- [P2] \`path/to/file.tsx:33-84\` 설명`.
+        - Use the real file path and real line range from pr.diff. Never write placeholders like `new hunk`, `new-hunk`, `파일 내`, `라인 범위`, or `새로운 hunks`.
         - When referring to locations to change, specify file paths and line ranges, but do NOT include inline code snippets or code blocks — describe the change in prose (what to remove, rename, or change, and why).
         - Do not annotate code snippets themselves with line numbers. Ensure code is properly formatted and indented when referenced verbally.
-        - If no issues are found within a specified line range, you don't need to write anything for that range.
+        - If there are no actionable findings, `## 리뷰` must contain exactly one bullet: `- Pn 규칙 기준으로 지적할 이슈 없음.`
         - Do not ask the user to provide `pr.diff`, file contents, access permissions, or any other workspace files.
         - Do not claim a file is unavailable until you have attempted to read it from the current workspace.
         

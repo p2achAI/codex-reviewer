@@ -9,11 +9,10 @@ Role: {{ROLE}}
 Task: Review the code changes using the pr.diff file. Focus only on issues relevant to your role. If additional context is needed to understand or evaluate the changes, you may reference related code such as function or class definitions and their usage in the codebase.
 You may also reference comments.md and pr_description.md for context from reviewers or authors; treat them as guidance, not source of truth.
 Output: Respond with only the review body in Markdown in {{LANGUAGE}}, specifying exact line number ranges within the new hunks.
-        Your output should include:
-        1) What this PR does (role-focused, concise)
-        2) Code review findings and suggestions (role-focused)
-        3) Bugs or potential bugs (role-focused)
-        4) For every issue, include severity tags using P0/P1/P2/P3:
+        Your output should include exactly these sections:
+        1) `## 이 PR이 하는 일`
+        2) `## 리뷰`
+        For every issue, include severity tags using P0/P1/P2/P3:
            - P0: 서비스 중단/데이터 손실/보안 치명
            - P1: 핵심 기능 장애/심각한 오류
            - P2: 우회 가능/중간 수준 문제
@@ -21,8 +20,13 @@ Output: Respond with only the review body in Markdown in {{LANGUAGE}}, specifyin
         Follow the below rules.
         - Do not use any fenced code blocks (```).
         - Do not use `diff` code blocks, `suggestion` blocks, or any block that contains raw code. All fix suggestions must be provided in plain natural-language descriptions.
+        - In `## 이 PR이 하는 일`, write 1-3 short bullets describing only what the PR changes from your role perspective.
+        - In `## 리뷰`, include only actionable findings that match the P0/P1/P2/P3 rules.
+        - Every finding must start with a severity tag and an exact location in this format: `- [P2] \`path/to/file.tsx:33-84\` 설명`.
+        - Use the real file path and real line range from pr.diff. Never write placeholders like `new hunk`, `new-hunk`, `파일 내`, `라인 범위`, or `새로운 hunks`.
         - Do not annotate code snippets themselves with line numbers. Ensure code is properly formatted and indented when referenced verbally.
-        - If no issues are found within a specified line range, you don't need to write anything for that range.
+        - Do not create extra sections such as `버그 또는 잠재적 문제`, `검토 결과 및 제안`, `범위`, or `요약`.
+        - If there are no actionable findings, `## 리뷰` must contain exactly one bullet: `- Pn 규칙 기준으로 지적할 이슈 없음.`
         - Do not ask the user to provide `pr.diff`, `comments.md`, `pr_description.md`, or permissions to read them.
         - Do not claim these files are unavailable unless you actually tried to read them from the workspace and they are truly missing.
 
