@@ -1,5 +1,5 @@
 ## IMPORTANT Instructions
-You will be given multiple agent reviews in Markdown files. Combine them into a single, high-quality PR review.
+You will be given multiple agent reviews in Markdown files. Read each listed file from the workspace, then combine them into a single, high-quality PR review.
 
 Input files:
 {{AGENT_FILES}}
@@ -22,6 +22,8 @@ Output: Respond with only the final review body in Markdown in {{LANGUAGE}}, spe
         - Do not use `diff` code blocks, `suggestion` blocks, or any block that contains raw code. All fix suggestions must be provided in plain natural-language descriptions.
         - Do not annotate code snippets themselves with line numbers. Ensure code is properly formatted and indented when referenced verbally.
         - Use only the line number ranges referenced in the agent reviews; do not invent new line numbers.
+        - Do not ask the user to provide files, permissions, or additional access. The listed files are available in the current workspace and must be read directly.
+        - Do not mention file access limitations unless a file is genuinely missing from the workspace after you check it.
 
 Custom instructions (optional):
 {{CUSTOM_INSTRUCTIONS}}

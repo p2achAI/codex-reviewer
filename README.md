@@ -10,7 +10,7 @@ An automated GitHub Action that reviews pull requests and provides AI-powered co
 - 🔍 **Code Review**: Provides suggestions to improve code quality
 - 🐛 **Bug Detection**: Identifies potential issues and bugs
 - 🌎 **Multilingual Support**: Generate reviews in multiple languages
-- 🧠 **Multi-Agent Review**: Specialized agents review different concerns and aggregate into one PR comment
+- 🎯 **Single-Agent Review**: One review prompt runs per label and writes a single PR comment
 - 📋 **Spec Compliance**: Optional ClickUp spec agent checks alignment with planned requirements
 
 ## Usage
@@ -46,8 +46,6 @@ jobs:
           model: "o4-mini"
           language: "korean"
           custom_prompt: "Please review the code"
-          enable_multi_agent: "true"
-          agents_path: "agents.json"
           clickup_api_token: ${{ secrets.CLICKUP_API_TOKEN }}
           clickup_url: "https://app.clickup.com/t/ABC-123"
           clickup_team_id: "90144302619"
@@ -68,8 +66,8 @@ jobs:
 | `model` | OpenAI model to use | ❌ | `codex-mini-latest` |
 | `language` | Review language | ❌ | `english` |
 | `custom_prompt` | Custom review prompt | ❌ | |
-| `enable_multi_agent` | Enable multi-agent review | ❌ | `true` |
-| `agents_path` | Path to `agents.json` | ❌ | `agents.json` |
+| `enable_multi_agent` | Deprecated. Multi-agent review is no longer used | ❌ | `false` |
+| `agents_path` | Deprecated. Multi-agent config path is no longer used | ❌ | `agents.json` |
 | `clickup_api_token` | ClickUp API token for spec agent | ❌ | |
 | `clickup_url` | ClickUp task URL for spec agent | ❌ | |
 | `clickup_team_id` | ClickUp team/workspace ID (for custom task IDs) | ❌ | |
@@ -84,11 +82,11 @@ jobs:
 3. Using an OpenAI model, it generates a comprehensive code review.
 4. The review is automatically posted as a comment on the PR.
 
-### Label-based Agents
+### Label-based Review Modes
 
-- `spec_label` (default `codex-review`): runs **Spec + Tests** in a single agent
-- `perfsec_label` (default `codex-review-perf`): runs **Performance/Security** agent
-- `bug_label` (default `codex-review-bug`): runs **Correctness/Bug** agent
+- `spec_label` (default `codex-review`): runs the **Spec + Tests** review prompt
+- `perfsec_label` (default `codex-review-perf`): runs the **Performance/Security** review prompt
+- `bug_label` (default `codex-review-bug`): runs the **Correctness/Bug** review prompt
 
 ### Spec Compliance (ClickUp)
 
@@ -107,8 +105,8 @@ The action also scans PR comments for ClickUp links without a marker. For exampl
 Task linked: [PR-1588 Wifi 대시보드 기술 기획](https://app.clickup.com/t/9014951824/PR-1588)
 ```
 
-PR 코멘트 전문은 `comments.md`로 저장되며, 에이전트들이 참고 컨텍스트로 사용할 수 있습니다.
-PR 설명은 `pr_description.md`로 저장되어 기획문서 준수 에이전트가 함께 참고합니다.
+PR 코멘트 전문은 `comments.md`로 저장되며, 단일 리뷰 프롬프트의 참고 컨텍스트로 사용됩니다.
+PR 설명은 `pr_description.md`로 저장되어 해당 라벨의 리뷰 프롬프트가 함께 참고합니다.
 
 ## License
 

@@ -40,11 +40,11 @@ inputs:
     required: false
     default: ""
   enable_multi_agent:
-    description: "Enable multi-agent review (true/false)"
+    description: "Deprecated. Multi-agent review is no longer used."
     required: false
-    default: "true"
+    default: "false"
   agents_path:
-    description: "Path to agents.json definition file"
+    description: "Deprecated. Multi-agent agent definition path is no longer used."
     required: false
     default: "agents.json"
   clickup_api_token:
@@ -101,8 +101,6 @@ runs:
         head -n 10 pr.diff
 
 
-        ENABLE_MULTI="${{ inputs.enable_multi_agent }}"
-        AGENTS_PATH="${{ inputs.agents_path }}"
         SPEC_SOURCE="${{ inputs.spec_source }}"
         SPEC_MARKER="${{ inputs.spec_comment_marker }}"
         CUSTOM_PROMPT="${{ inputs.custom_prompt }}"
@@ -119,138 +117,81 @@ runs:
           TRIGGER_LABEL="${{ inputs.label }}"
         fi
 
-        if [ -z "${AGENTS_PATH}" ]; then
-          AGENTS_PATH="agents.json"
+        PROMPT_TEMPLATE=""
+        case "${TRIGGER_LABEL}" in
+          "${SPEC_LABEL}")
+            PROMPT_TEMPLATE="$GITHUB_ACTION_PATH/prompts/agent_spec.txt"
+            ;;
+          "${PERFSEC_LABEL}"|"${BUG_LABEL}")
+            PROMPT_TEMPLATE="$GITHUB_ACTION_PATH/prompts/agent_base.txt"
+            ;;
+          *)
+            PROMPT_TEMPLATE="$GITHUB_ACTION_PATH/prompt.txt"
+            ;;
+        esac
+
+        SPEC_URL=""
+        if [ -n "${CLICKUP_URL_INPUT}" ]; then
+          SPEC_URL="${CLICKUP_URL_INPUT}"
+        elif [ "${SPEC_SOURCE}" = "comment" ] || [ "${SPEC_SOURCE}" = "auto" ]; then
+          echo "Searching PR comments for spec URL with marker: ${SPEC_MARKER}"
+          COMMENTS_JSON=$(curl -sS -H "Authorization: token ${GITHUB_TOKEN}" -H "Accept: application/vnd.github+json" \
+            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/issues/${{ github.event.pull_request.number }}/comments") || true
+          PR_JSON=$(curl -sS -H "Authorization: token ${GITHUB_TOKEN}" -H "Accept: application/vnd.github+json" \
+            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/pulls/${{ github.event.pull_request.number }}") || true
+          echo "${COMMENTS_JSON}" | python "$GITHUB_ACTION_PATH/scripts/comments_to_md.py" > comments.md || echo "Warning: failed to render comments.md"
+          echo "${PR_JSON}" | python "$GITHUB_ACTION_PATH/scripts/pr_body_to_md.py" > pr_description.md || echo "Warning: failed to render pr_description.md"
+          SPEC_URL=$(echo "${COMMENTS_JSON}" | SPEC_COMMENT_MARKER="${SPEC_MARKER}" python "$GITHUB_ACTION_PATH/scripts/find_spec_url.py" || true)
         fi
 
-        if [ ! -f "${AGENTS_PATH}" ]; then
-          if [ -f "$GITHUB_ACTION_PATH/${AGENTS_PATH}" ]; then
-            AGENTS_PATH="$GITHUB_ACTION_PATH/${AGENTS_PATH}"
-          fi
-        fi
-
-        if [ "${ENABLE_MULTI}" != "true" ] || [ ! -f "${AGENTS_PATH}" ]; then
-          # Use custom prompt if provided, otherwise use default
-          if [ -n "${CUSTOM_PROMPT}" ]; then
-            echo "${CUSTOM_PROMPT}" > prompt.txt
-          else
-            echo "Looking for prompt.txt in action directory"
-            ls -la $GITHUB_ACTION_PATH
-            # Copy prompt.txt from action directory to current workspace
-            cp $GITHUB_ACTION_PATH/prompt.txt ./prompt.txt || echo "Warning: prompt.txt not found in action directory"
-          fi
-          
-          # Replace LANGUAGE with the specified language input
-          sed -i 's/LANGUAGE/${{ inputs.language }}/g' prompt.txt
-          
-          cat prompt.txt
-          
-          # Persist the final response directly to the review file.
-          codex exec --full-auto -m ${{ inputs.model }} -o review.md - < prompt.txt
+        if [ -n "${SPEC_URL}" ]; then
+          echo "Spec URL found: ${SPEC_URL}"
+          CLICKUP_URL="${SPEC_URL}" CLICKUP_API_TOKEN="${CLICKUP_API_TOKEN}" \
+            CLICKUP_TEAM_ID="${CLICKUP_TEAM_ID}" CLICKUP_CUSTOM_TASK_IDS="${CLICKUP_CUSTOM_TASK_IDS}" \
+            OUTPUT_FILE="spec.md" \
+            python "$GITHUB_ACTION_PATH/scripts/fetch_clickup_task.py" || echo "Warning: failed to fetch ClickUp spec."
         else
-          echo "Multi-agent mode enabled"
-          mkdir -p reviews prompts_rendered
-
-          SPEC_URL=""
-          if [ -n "${CLICKUP_URL_INPUT}" ]; then
-            SPEC_URL="${CLICKUP_URL_INPUT}"
-          elif [ "${SPEC_SOURCE}" = "comment" ] || [ "${SPEC_SOURCE}" = "auto" ]; then
-            echo "Searching PR comments for spec URL with marker: ${SPEC_MARKER}"
-            COMMENTS_JSON=$(curl -sS -H "Authorization: token ${GITHUB_TOKEN}" -H "Accept: application/vnd.github+json" \
-              "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/issues/${{ github.event.pull_request.number }}/comments") || true
-            PR_JSON=$(curl -sS -H "Authorization: token ${GITHUB_TOKEN}" -H "Accept: application/vnd.github+json" \
-              "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/pulls/${{ github.event.pull_request.number }}") || true
-            echo "${COMMENTS_JSON}" | python "$GITHUB_ACTION_PATH/scripts/comments_to_md.py" > comments.md || echo "Warning: failed to render comments.md"
-            echo "${PR_JSON}" | python "$GITHUB_ACTION_PATH/scripts/pr_body_to_md.py" > pr_description.md || echo "Warning: failed to render pr_description.md"
-            SPEC_URL=$(echo "${COMMENTS_JSON}" | SPEC_COMMENT_MARKER="${SPEC_MARKER}" python "$GITHUB_ACTION_PATH/scripts/find_spec_url.py" || true)
-          fi
-
-          if [ -n "${SPEC_URL}" ]; then
-            echo "Spec URL found: ${SPEC_URL}"
-            CLICKUP_URL="${SPEC_URL}" CLICKUP_API_TOKEN="${CLICKUP_API_TOKEN}" \
-              CLICKUP_TEAM_ID="${CLICKUP_TEAM_ID}" CLICKUP_CUSTOM_TASK_IDS="${CLICKUP_CUSTOM_TASK_IDS}" \
-              OUTPUT_FILE="spec.md" \
-              python "$GITHUB_ACTION_PATH/scripts/fetch_clickup_task.py" || echo "Warning: failed to fetch ClickUp spec."
-          else
-            echo "No spec URL found. Spec agent will run with empty spec."
-          fi
-
-          if [ ! -f spec.md ]; then
-            : > spec.md
-          fi
-          if [ ! -f comments.md ]; then
-            : > comments.md
-          fi
-          if [ ! -f pr_description.md ]; then
-            : > pr_description.md
-          fi
-
-          ACTIVE_AGENTS=""
-          case "${TRIGGER_LABEL}" in
-            "${SPEC_LABEL}")
-              ACTIVE_AGENTS="spec"
-              ;;
-            "${PERFSEC_LABEL}")
-              ACTIVE_AGENTS="perfsec"
-              ;;
-            "${BUG_LABEL}")
-              ACTIVE_AGENTS="logic"
-              ;;
-            *)
-              ACTIVE_AGENTS="spec testing"
-              ;;
-          esac
-
-          AGENT_FILES=""
-          while IFS='|' read -r agent_name agent_role agent_prompt; do
-            if [ -z "${agent_name}" ] || [ -z "${agent_prompt}" ]; then
-              continue
-            fi
-
-            if ! echo " ${ACTIVE_AGENTS} " | grep -q " ${agent_name} "; then
-              continue
-            fi
-
-            OUTPUT_FILE="reviews/agent_${agent_name}.md"
-            PROMPT_TEMPLATE="${GITHUB_ACTION_PATH}/${agent_prompt}"
-            if [ ! -f "${PROMPT_TEMPLATE}" ]; then
-              echo "Warning: prompt template not found for agent ${agent_name}: ${PROMPT_TEMPLATE}"
-              continue
-            fi
-
-            ROLE="${agent_role}" OUTPUT_FILE="${OUTPUT_FILE}" LANGUAGE="${{ inputs.language }}" CUSTOM_INSTRUCTIONS="${CUSTOM_PROMPT}" \
-              COMMENTS_FILE="comments.md" \
-              PR_DESCRIPTION_FILE="pr_description.md" \
-              python "$GITHUB_ACTION_PATH/scripts/render_prompt.py" "${PROMPT_TEMPLATE}" "prompts_rendered/${agent_name}.txt"
-
-            echo "Running agent: ${agent_name} (${agent_role})"
-            codex exec --full-auto -m ${{ inputs.model }} -o "${OUTPUT_FILE}" - < prompts_rendered/${agent_name}.txt || \
-              echo "Warning: agent ${agent_name} failed."
-
-            if [ -s "${OUTPUT_FILE}" ]; then
-              AGENT_FILES="${AGENT_FILES}\n- ${OUTPUT_FILE}"
-            fi
-          done < <(python "$GITHUB_ACTION_PATH/scripts/list_agents.py" "${AGENTS_PATH}")
-
-          if [ -z "${AGENT_FILES}" ]; then
-            echo "No agent outputs generated. Falling back to default message."
-          else
-            AGG_PROMPT="${GITHUB_ACTION_PATH}/prompts/aggregate.txt"
-            AGENT_FILES="${AGENT_FILES#\\n}"
-            AGENT_FILES="${AGENT_FILES}"
-            AGENT_FILES_VAR=$(printf "%b" "${AGENT_FILES}")
-            AGENT_FILES="${AGENT_FILES_VAR}"
-
-            AGENT_FILES="${AGENT_FILES}" LANGUAGE="${{ inputs.language }}" CUSTOM_INSTRUCTIONS="${CUSTOM_PROMPT}" \
-              COMMENTS_FILE="comments.md" \
-              PR_DESCRIPTION_FILE="pr_description.md" \
-              python "$GITHUB_ACTION_PATH/scripts/render_prompt.py" "${AGG_PROMPT}" "prompts_rendered/aggregate.txt"
-
-            echo "Running aggregate agent"
-            codex exec --full-auto -m ${{ inputs.model }} -o review.md - < prompts_rendered/aggregate.txt || \
-              echo "Warning: aggregate agent failed."
-          fi
+          echo "No spec URL found. Spec context will be empty."
         fi
+
+        if [ ! -f spec.md ]; then
+          : > spec.md
+        fi
+        if [ ! -f comments.md ]; then
+          : > comments.md
+        fi
+        if [ ! -f pr_description.md ]; then
+          : > pr_description.md
+        fi
+
+        ROLE="General review"
+        case "${TRIGGER_LABEL}" in
+          "${SPEC_LABEL}")
+            ROLE="기획문서 준수 + 테스트(ClickUp + PR description)"
+            ;;
+          "${PERFSEC_LABEL}")
+            ROLE="성능/보안"
+            ;;
+          "${BUG_LABEL}")
+            ROLE="정합성/버그"
+            ;;
+        esac
+
+        if [ -n "${CUSTOM_PROMPT}" ]; then
+          echo "${CUSTOM_PROMPT}" > prompt.txt
+        elif [ "${PROMPT_TEMPLATE}" = "$GITHUB_ACTION_PATH/prompt.txt" ]; then
+          cp "$GITHUB_ACTION_PATH/prompt.txt" ./prompt.txt || echo "Warning: prompt.txt not found in action directory"
+        else
+          ROLE="${ROLE}" OUTPUT_FILE="review.md" LANGUAGE="${{ inputs.language }}" CUSTOM_INSTRUCTIONS="${CUSTOM_PROMPT}" \
+            COMMENTS_FILE="comments.md" \
+            PR_DESCRIPTION_FILE="pr_description.md" \
+            python "$GITHUB_ACTION_PATH/scripts/render_prompt.py" "${PROMPT_TEMPLATE}" "prompt.txt"
+        fi
+
+        sed -i 's/LANGUAGE/${{ inputs.language }}/g' prompt.txt
+        cat prompt.txt
+
+        codex exec --full-auto -m ${{ inputs.model }} -o review.md - < prompt.txt
 
         if [ ! -s review.md ]; then
           echo "Codex failed to generate review in review.md. Creating default message..." 
