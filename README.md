@@ -64,6 +64,7 @@ jobs:
 | `perfsec_label` | Label for performance/security review | ❌ | `codex-review-perf` |
 | `bug_label` | Label for correctness/bug review | ❌ | `codex-review-bug` |
 | `model` | OpenAI model to use | ❌ | `codex-mini-latest` |
+| `codex_version` | Pinned `@openai/codex` version installed in GitHub Actions | ❌ | `0.115.0-alpha.27` |
 | `language` | Review language | ❌ | `english` |
 | `custom_prompt` | Custom review prompt | ❌ | |
 | `enable_multi_agent` | Deprecated. Multi-agent review is no longer used | ❌ | `false` |
@@ -81,6 +82,18 @@ jobs:
 2. It analyzes the code changes in the PR.
 3. Using an OpenAI model, it generates a comprehensive code review.
 4. The review is automatically posted as a comment on the PR.
+
+### Local Smoke Test
+
+로컬에서도 액션과 같은 리뷰 경로를 검증할 수 있습니다.
+
+```bash
+bash ./scripts/local_smoke_test.sh
+```
+
+- 기본값은 `scripts/mock_codex.sh`를 사용하므로 API 키 없이도 실행됩니다.
+- 실제 Codex까지 포함해 확인하려면 `OPENAI_API_KEY`를 설정한 뒤 `bash ./scripts/local_smoke_test.sh --live` 를 실행하세요.
+- 현재 고정 버전은 `@openai/codex@0.115.0-alpha.27` 입니다.
 
 ### Label-based Review Modes
 

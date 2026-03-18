@@ -5,10 +5,11 @@ Hunks may include incomplete code fragments.
 spec.md: Product/requirement document fetched from ClickUp. It may be empty if unavailable.
 comments.md: PR comments captured from the GitHub API. Use this for additional context, clarifications, and constraints.
 pr_description.md: PR description (body) captured from the GitHub API. Use this to understand intent and scope.
+These files are available in the current workspace. Read them directly instead of asking the user to provide them again.
 
 Role: {{ROLE}}
 Task: Review the code changes in pr.diff against the requirements in spec.md and pr_description.md. Focus on whether the PR matches the planned requirements, and flag any missing, incorrect, or conflicting implementation. Also verify that meaningful tests were added or updated where appropriate, and highlight missing test cases.
-If spec.md is empty, you may reference pr_description.md and comments.md for requirement clues, but do not invent requirements.
+If spec.md is empty, you must still review the PR using pr.diff and may reference pr_description.md and comments.md for requirement clues, but do not invent requirements.
 Output: Respond with only the review body in Markdown in {{LANGUAGE}}, specifying exact line number ranges within the new hunks.
         Your output should include:
         1) What this PR does relative to the spec (concise)
@@ -24,6 +25,9 @@ Output: Respond with only the review body in Markdown in {{LANGUAGE}}, specifyin
         - Do not use `diff` code blocks, `suggestion` blocks, or any block that contains raw code. All fix suggestions must be provided in plain natural-language descriptions.
         - Do not annotate code snippets themselves with line numbers. Ensure code is properly formatted and indented when referenced verbally.
         - If spec.md is missing or empty, state that the spec could not be loaded and only review obvious mismatches if any; do not invent requirements.
+        - Even when spec.md is empty, do not stop early or ask the user to provide missing files. Continue with a code review based on pr.diff and any available PR context.
+        - Do not ask the user to provide `pr.diff`, `spec.md`, `comments.md`, `pr_description.md`, or file access permissions.
+        - Do not claim these files are unavailable unless you actually tried to read them from the workspace and they are truly missing.
 
 Custom instructions (optional):
 {{CUSTOM_INSTRUCTIONS}}

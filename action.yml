@@ -31,6 +31,10 @@ inputs:
     description: "OpenAI model to use for code review (e.g. codex-mini-latest, o4-mini, gpt-4, etc.)"
     required: false
     default: "gpt-5-mini"
+  codex_version:
+    description: "Pinned @openai/codex version to install"
+    required: false
+    default: "0.115.0-alpha.27"
   language:
     description: "Language for the review output (e.g. english, korean, japanese, etc.)"
     required: false
@@ -87,119 +91,29 @@ runs:
         GITHUB_TOKEN: ${{ inputs.github_token }}
       run: |
         echo "Installing Codex"
-        npm install -g @openai/codex@latest 
+        npm install -g @openai/codex@${{ inputs.codex_version }}
 
-        touch review.md
+        export ACTION_DIR="$GITHUB_ACTION_PATH"
+        export MODEL="${{ inputs.model }}"
+        export LANGUAGE="${{ inputs.language }}"
+        export CUSTOM_PROMPT="${{ inputs.custom_prompt }}"
+        export CLICKUP_URL_INPUT="${{ inputs.clickup_url }}"
+        export CLICKUP_API_TOKEN="${{ inputs.clickup_api_token }}"
+        export CLICKUP_TEAM_ID="${{ inputs.clickup_team_id }}"
+        export CLICKUP_CUSTOM_TASK_IDS="${{ inputs.clickup_custom_task_ids }}"
+        export SPEC_SOURCE="${{ inputs.spec_source }}"
+        export SPEC_MARKER="${{ inputs.spec_comment_marker }}"
+        export SPEC_LABEL="${{ inputs.spec_label }}"
+        export PERFSEC_LABEL="${{ inputs.perfsec_label }}"
+        export BUG_LABEL="${{ inputs.bug_label }}"
+        export DEFAULT_LABEL="${{ inputs.label }}"
+        export TRIGGER_LABEL="${{ github.event.label.name }}"
+        export PR_NUMBER="${{ github.event.pull_request.number }}"
+        export BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
+        export HEAD_BRANCH="${{ github.event.pull_request.head.ref }}"
+        export GITHUB_TOKEN="${{ inputs.github_token }}"
 
-        BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
-        HEAD_BRANCH="${{ github.event.pull_request.head.ref }}"
-        echo "Using pr into ${BASE_BRANCH} from ${HEAD_BRANCH} (PR #${{ github.event.pull_request.number }})"
-        git fetch origin "${BASE_BRANCH}:${BASE_BRANCH}"
-        git fetch origin "${HEAD_BRANCH}:${HEAD_BRANCH}"
-        git diff "${BASE_BRANCH}"..."${HEAD_BRANCH}" > pr.diff
-        echo "head -n 10 pr.diff"
-        head -n 10 pr.diff
-
-
-        SPEC_SOURCE="${{ inputs.spec_source }}"
-        SPEC_MARKER="${{ inputs.spec_comment_marker }}"
-        CUSTOM_PROMPT="${{ inputs.custom_prompt }}"
-        CLICKUP_URL_INPUT="${{ inputs.clickup_url }}"
-        CLICKUP_API_TOKEN="${{ inputs.clickup_api_token }}"
-        CLICKUP_TEAM_ID="${{ inputs.clickup_team_id }}"
-        CLICKUP_CUSTOM_TASK_IDS="${{ inputs.clickup_custom_task_ids }}"
-        SPEC_LABEL="${{ inputs.spec_label }}"
-        PERFSEC_LABEL="${{ inputs.perfsec_label }}"
-        BUG_LABEL="${{ inputs.bug_label }}"
-        TRIGGER_LABEL="${{ github.event.label.name }}"
-
-        if [ -z "${TRIGGER_LABEL}" ]; then
-          TRIGGER_LABEL="${{ inputs.label }}"
-        fi
-
-        PROMPT_TEMPLATE=""
-        case "${TRIGGER_LABEL}" in
-          "${SPEC_LABEL}")
-            PROMPT_TEMPLATE="$GITHUB_ACTION_PATH/prompts/agent_spec.txt"
-            ;;
-          "${PERFSEC_LABEL}"|"${BUG_LABEL}")
-            PROMPT_TEMPLATE="$GITHUB_ACTION_PATH/prompts/agent_base.txt"
-            ;;
-          *)
-            PROMPT_TEMPLATE="$GITHUB_ACTION_PATH/prompt.txt"
-            ;;
-        esac
-
-        SPEC_URL=""
-        if [ -n "${CLICKUP_URL_INPUT}" ]; then
-          SPEC_URL="${CLICKUP_URL_INPUT}"
-        elif [ "${SPEC_SOURCE}" = "comment" ] || [ "${SPEC_SOURCE}" = "auto" ]; then
-          echo "Searching PR comments for spec URL with marker: ${SPEC_MARKER}"
-          COMMENTS_JSON=$(curl -sS -H "Authorization: token ${GITHUB_TOKEN}" -H "Accept: application/vnd.github+json" \
-            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/issues/${{ github.event.pull_request.number }}/comments") || true
-          PR_JSON=$(curl -sS -H "Authorization: token ${GITHUB_TOKEN}" -H "Accept: application/vnd.github+json" \
-            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/pulls/${{ github.event.pull_request.number }}") || true
-          echo "${COMMENTS_JSON}" | python "$GITHUB_ACTION_PATH/scripts/comments_to_md.py" > comments.md || echo "Warning: failed to render comments.md"
-          echo "${PR_JSON}" | python "$GITHUB_ACTION_PATH/scripts/pr_body_to_md.py" > pr_description.md || echo "Warning: failed to render pr_description.md"
-          SPEC_URL=$(echo "${COMMENTS_JSON}" | SPEC_COMMENT_MARKER="${SPEC_MARKER}" python "$GITHUB_ACTION_PATH/scripts/find_spec_url.py" || true)
-        fi
-
-        if [ -n "${SPEC_URL}" ]; then
-          echo "Spec URL found: ${SPEC_URL}"
-          CLICKUP_URL="${SPEC_URL}" CLICKUP_API_TOKEN="${CLICKUP_API_TOKEN}" \
-            CLICKUP_TEAM_ID="${CLICKUP_TEAM_ID}" CLICKUP_CUSTOM_TASK_IDS="${CLICKUP_CUSTOM_TASK_IDS}" \
-            OUTPUT_FILE="spec.md" \
-            python "$GITHUB_ACTION_PATH/scripts/fetch_clickup_task.py" || echo "Warning: failed to fetch ClickUp spec."
-        else
-          echo "No spec URL found. Spec context will be empty."
-        fi
-
-        if [ ! -f spec.md ]; then
-          : > spec.md
-        fi
-        if [ ! -f comments.md ]; then
-          : > comments.md
-        fi
-        if [ ! -f pr_description.md ]; then
-          : > pr_description.md
-        fi
-
-        ROLE="General review"
-        case "${TRIGGER_LABEL}" in
-          "${SPEC_LABEL}")
-            ROLE="기획문서 준수 + 테스트(ClickUp + PR description)"
-            ;;
-          "${PERFSEC_LABEL}")
-            ROLE="성능/보안"
-            ;;
-          "${BUG_LABEL}")
-            ROLE="정합성/버그"
-            ;;
-        esac
-
-        if [ -n "${CUSTOM_PROMPT}" ]; then
-          echo "${CUSTOM_PROMPT}" > prompt.txt
-        elif [ "${PROMPT_TEMPLATE}" = "$GITHUB_ACTION_PATH/prompt.txt" ]; then
-          cp "$GITHUB_ACTION_PATH/prompt.txt" ./prompt.txt || echo "Warning: prompt.txt not found in action directory"
-        else
-          ROLE="${ROLE}" OUTPUT_FILE="review.md" LANGUAGE="${{ inputs.language }}" CUSTOM_INSTRUCTIONS="${CUSTOM_PROMPT}" \
-            COMMENTS_FILE="comments.md" \
-            PR_DESCRIPTION_FILE="pr_description.md" \
-            python "$GITHUB_ACTION_PATH/scripts/render_prompt.py" "${PROMPT_TEMPLATE}" "prompt.txt"
-        fi
-
-        sed -i 's/LANGUAGE/${{ inputs.language }}/g' prompt.txt
-        cat prompt.txt
-
-        codex exec --full-auto -m ${{ inputs.model }} -o review.md - < prompt.txt
-
-        if [ ! -s review.md ]; then
-          echo "Codex failed to generate review in review.md. Creating default message..." 
-          echo "## Code Review for PR #${{ github.event.pull_request.number }}" > review.md
-          echo "" >> review.md
-          echo "Sorry, the automated review system encountered an issue while analyzing this PR." >> review.md
-          echo "Please try again by re-applying the label \`${TRIGGER_LABEL:-${{ inputs.label }}}\`." >> review.md
-        fi
+        "$GITHUB_ACTION_PATH/scripts/run_review.sh"
 
     - name: Comments on PR
       uses: peter-evans/create-or-update-comment@v3

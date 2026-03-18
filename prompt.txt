@@ -2,6 +2,7 @@
 pr.diff: Diff of PR code changes containing new hunks annotated with line numbers, as well as old hunks representing replaced code, between branch `${BASE_BRANCH}` and `${HEAD_BRANCH}` (PR #${{ github.event.pull_request.number }}).
 Hunks may include incomplete code fragments.
 Before proceeding, check if an `AGENTS.md` file exists in the repository. If it does, use it as an additional guide. If not, continue with this prompt.
+The file `pr.diff` is available in the current workspace. Read it directly before writing the review.
 
 Task: Review the code changes using the pr.diff file you should read the pr.diff file and understand the changes. Focus your review on these changes; however, if additional context is needed to understand or evaluate the changes, you may reference related code such as function or class definitions and their usage in the codebase.
 Output: Respond with only the final review body in Markdown in LANGUAGE, specifying exact line number ranges within the new hunks.
@@ -15,6 +16,8 @@ Output: Respond with only the final review body in Markdown in LANGUAGE, specify
         - When referring to locations to change, specify file paths and line ranges, but do NOT include inline code snippets or code blocks — describe the change in prose (what to remove, rename, or change, and why).
         - Do not annotate code snippets themselves with line numbers. Ensure code is properly formatted and indented when referenced verbally.
         - If no issues are found within a specified line range, you don't need to write anything for that range.
+        - Do not ask the user to provide `pr.diff`, file contents, access permissions, or any other workspace files.
+        - Do not claim a file is unavailable until you have attempted to read it from the current workspace.
         
 ## MUST FOLLOW
 Return only the Markdown review body in LANGUAGE with no preface about saving files.
