@@ -22,7 +22,7 @@ while [ "$#" -gt 0 ]; do
     -m|--model|-C|--cd|-c|--config)
       shift 2
       ;;
-    --full-auto|--skip-git-repo-check|--ephemeral|--json|--)
+    --full-auto|--skip-git-repo-check|--ephemeral|--json|--dangerously-bypass-approvals-and-sandbox|--)
       shift
       ;;
     -)

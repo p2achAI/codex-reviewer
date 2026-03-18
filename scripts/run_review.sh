@@ -23,6 +23,7 @@ PR_NUMBER="${PR_NUMBER:-0}"
 BASE_BRANCH="${BASE_BRANCH:-}"
 HEAD_BRANCH="${HEAD_BRANCH:-}"
 SKIP_REMOTE_CONTEXT="${SKIP_REMOTE_CONTEXT:-false}"
+CODEX_EXEC_MODE="${CODEX_EXEC_MODE:-auto}"
 
 if [ -z "${TRIGGER_LABEL}" ]; then
   TRIGGER_LABEL="${DEFAULT_LABEL}"
@@ -128,7 +129,29 @@ path.write_text(path.read_text(encoding="utf-8").replace("LANGUAGE", language), 
 PY
 cat prompt.txt
 
-"${CODEX_BIN}" exec --full-auto -m "${MODEL}" -o review.md - < prompt.txt
+CODEX_ARGS=(exec -m "${MODEL}" -o review.md)
+case "${CODEX_EXEC_MODE}" in
+  ci)
+    # GitHub-hosted runners are already isolated; avoid nested bwrap sandbox failures in CI.
+    CODEX_ARGS+=(--dangerously-bypass-approvals-and-sandbox)
+    ;;
+  full-auto)
+    CODEX_ARGS+=(--full-auto)
+    ;;
+  auto)
+    if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
+      CODEX_ARGS+=(--dangerously-bypass-approvals-and-sandbox)
+    else
+      CODEX_ARGS+=(--full-auto)
+    fi
+    ;;
+  *)
+    echo "Unsupported CODEX_EXEC_MODE: ${CODEX_EXEC_MODE}" >&2
+    exit 2
+    ;;
+esac
+
+"${CODEX_BIN}" "${CODEX_ARGS[@]}" - < prompt.txt
 
 if [ ! -s review.md ]; then
   echo "Codex failed to generate review in review.md. Creating default message..."

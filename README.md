@@ -94,6 +94,7 @@ bash ./scripts/local_smoke_test.sh
 - 기본값은 `scripts/mock_codex.sh`를 사용하므로 API 키 없이도 실행됩니다.
 - 실제 Codex까지 포함해 확인하려면 `OPENAI_API_KEY`를 설정한 뒤 `bash ./scripts/local_smoke_test.sh --live` 를 실행하세요.
 - 현재 고정 버전은 `@openai/codex@0.115.0-alpha.27` 입니다.
+- GitHub Actions에서는 중첩 샌드박스 오류를 피하기 위해 `--dangerously-bypass-approvals-and-sandbox` 로 실행합니다. 러너 자체가 격리 환경이므로 CI에서만 이 모드를 사용합니다.
 
 ### Label-based Review Modes
 

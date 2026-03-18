@@ -112,6 +112,7 @@ runs:
         export BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
         export HEAD_BRANCH="${{ github.event.pull_request.head.ref }}"
         export GITHUB_TOKEN="${{ inputs.github_token }}"
+        export CODEX_EXEC_MODE="ci"
 
         "$GITHUB_ACTION_PATH/scripts/run_review.sh"
 
