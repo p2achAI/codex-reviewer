@@ -7,7 +7,7 @@ comments.md: PR comments captured from the GitHub API. Use this only to resolve 
 pr_description.md: PR description (body) captured from the GitHub API. Use this only to resolve ambiguity or conflicts.
 
 Task: Merge and de-duplicate findings. Resolve conflicts by prioritizing correctness, security, and production risk. Keep the review concise but complete.
-Output: Write the final review in Markdown format in review.md in {{LANGUAGE}}, specifying exact line number ranges within the new hunks.
+Output: Respond with only the final review body in Markdown in {{LANGUAGE}}, specifying exact line number ranges within the new hunks.
         The final review must include:
         1) Explain what this PR does
         2) Code review and suggestions for improvement
@@ -27,4 +27,4 @@ Custom instructions (optional):
 {{CUSTOM_INSTRUCTIONS}}
 
 ## MUST FOLLOW
-Write your review in the review.md file in {{LANGUAGE}}.
+Return only the Markdown review body in {{LANGUAGE}} with no preface about saving files.

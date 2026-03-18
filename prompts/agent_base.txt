@@ -7,7 +7,7 @@ pr_description.md: PR description (body) captured from the GitHub API. Use this 
 Role: {{ROLE}}
 Task: Review the code changes using the pr.diff file. Focus only on issues relevant to your role. If additional context is needed to understand or evaluate the changes, you may reference related code such as function or class definitions and their usage in the codebase.
 You may also reference comments.md and pr_description.md for context from reviewers or authors; treat them as guidance, not source of truth.
-Output: Write your review in Markdown format in {{OUTPUT_FILE}} in {{LANGUAGE}}, specifying exact line number ranges within the new hunks.
+Output: Respond with only the review body in Markdown in {{LANGUAGE}}, specifying exact line number ranges within the new hunks.
         Your output should include:
         1) What this PR does (role-focused, concise)
         2) Code review findings and suggestions (role-focused)
@@ -27,4 +27,4 @@ Custom instructions (optional):
 {{CUSTOM_INSTRUCTIONS}}
 
 ## MUST FOLLOW
-Write your review in the {{OUTPUT_FILE}} file in {{LANGUAGE}}.
+Return only the Markdown review body in {{LANGUAGE}} with no preface about saving files.
