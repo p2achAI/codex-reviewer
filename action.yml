@@ -8,9 +8,18 @@ inputs:
   github_token:
     description: "GitHub token used for posting review comments on PRs"
     required: true
+  provider:
+    description: "AI provider to use: openai or claude"
+    required: false
+    default: "openai"
   openai_api_key:
-    description: "OpenAI API Key for accessing AI models"
-    required: true
+    description: "OpenAI API Key (required when provider=openai)"
+    required: false
+    default: ""
+  anthropic_api_key:
+    description: "Anthropic API Key (required when provider=claude)"
+    required: false
+    default: ""
   label:
     description: "Label name that triggers the review action (e.g. codex-review)"
     required: true
@@ -28,13 +37,17 @@ inputs:
     required: false
     default: "codex-review-bug"
   model:
-    description: "OpenAI model to use for code review (e.g. codex-mini-latest, o4-mini, gpt-4, etc.)"
+    description: "Model to use for code review (e.g. gpt-5-mini, o4-mini for OpenAI; claude-sonnet-4-6, claude-opus-4-6 for Claude)"
     required: false
     default: "gpt-5-mini"
   codex_version:
     description: "Pinned @openai/codex version to install"
     required: false
     default: "0.115.0-alpha.27"
+  claude_code_version:
+    description: "Pinned @anthropic-ai/claude-code version to install"
+    required: false
+    default: "2.1.105"
   language:
     description: "Language for the review output (e.g. english, korean, japanese, etc.)"
     required: false
@@ -88,12 +101,19 @@ runs:
       env:
         OPENAI_API_KEY: ${{ inputs.openai_api_key }}
         CODEX_API_KEY: ${{ inputs.openai_api_key }}
+        ANTHROPIC_API_KEY: ${{ inputs.anthropic_api_key }}
         GITHUB_TOKEN: ${{ inputs.github_token }}
       run: |
-        echo "Installing Codex"
-        npm install -g @openai/codex@${{ inputs.codex_version }}
+        if [ "${{ inputs.provider }}" = "claude" ]; then
+          echo "Installing Claude Code"
+          npm install -g @anthropic-ai/claude-code@${{ inputs.claude_code_version }}
+        else
+          echo "Installing Codex"
+          npm install -g @openai/codex@${{ inputs.codex_version }}
+        fi
 
         export ACTION_DIR="$GITHUB_ACTION_PATH"
+        export PROVIDER="${{ inputs.provider }}"
         export MODEL="${{ inputs.model }}"
         export LANGUAGE="${{ inputs.language }}"
         export CUSTOM_PROMPT="${{ inputs.custom_prompt }}"

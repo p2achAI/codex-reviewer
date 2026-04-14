@@ -5,6 +5,7 @@ ACTION_DIR="${ACTION_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 WORKDIR="${WORKDIR:-$(pwd)}"
 CODEX_BIN="${CODEX_BIN:-codex}"
 PYTHON_BIN="${PYTHON_BIN:-python3}"
+PROVIDER="${PROVIDER:-openai}"
 MODEL="${MODEL:-gpt-5-mini}"
 LANGUAGE="${LANGUAGE:-english}"
 CUSTOM_PROMPT="${CUSTOM_PROMPT:-}"
@@ -24,6 +25,22 @@ BASE_BRANCH="${BASE_BRANCH:-}"
 HEAD_BRANCH="${HEAD_BRANCH:-}"
 SKIP_REMOTE_CONTEXT="${SKIP_REMOTE_CONTEXT:-false}"
 CODEX_EXEC_MODE="${CODEX_EXEC_MODE:-auto}"
+CLAUDE_BIN="${CLAUDE_BIN:-claude}"
+
+# Switch model default when using Claude with the OpenAI default model
+if [ "${PROVIDER}" = "claude" ] && [ "${MODEL}" = "gpt-5-mini" ]; then
+  MODEL="claude-sonnet-4-6"
+fi
+
+# Validate API key for the selected provider
+if [ "${PROVIDER}" = "openai" ] && [ -z "${OPENAI_API_KEY:-}" ]; then
+  echo "OPENAI_API_KEY is required when provider=openai" >&2
+  exit 2
+fi
+if [ "${PROVIDER}" = "claude" ] && [ -z "${ANTHROPIC_API_KEY:-}" ]; then
+  echo "ANTHROPIC_API_KEY is required when provider=claude" >&2
+  exit 2
+fi
 
 if [ -z "${TRIGGER_LABEL}" ]; then
   TRIGGER_LABEL="${DEFAULT_LABEL}"
@@ -129,32 +146,35 @@ path.write_text(path.read_text(encoding="utf-8").replace("LANGUAGE", language), 
 PY
 cat prompt.txt
 
-CODEX_ARGS=(exec -m "${MODEL}" -o review.md)
-case "${CODEX_EXEC_MODE}" in
-  ci)
-    # GitHub-hosted runners are already isolated; avoid nested bwrap sandbox failures in CI.
-    CODEX_ARGS+=(--dangerously-bypass-approvals-and-sandbox)
-    ;;
-  full-auto)
-    CODEX_ARGS+=(--full-auto)
-    ;;
-  auto)
-    if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
+if [ "${PROVIDER}" = "claude" ]; then
+  "${CLAUDE_BIN}" -p --model "${MODEL}" --dangerously-skip-permissions < prompt.txt > review.md
+else
+  CODEX_ARGS=(exec -m "${MODEL}" -o review.md)
+  case "${CODEX_EXEC_MODE}" in
+    ci)
+      # GitHub-hosted runners are already isolated; avoid nested bwrap sandbox failures in CI.
       CODEX_ARGS+=(--dangerously-bypass-approvals-and-sandbox)
-    else
+      ;;
+    full-auto)
       CODEX_ARGS+=(--full-auto)
-    fi
-    ;;
-  *)
-    echo "Unsupported CODEX_EXEC_MODE: ${CODEX_EXEC_MODE}" >&2
-    exit 2
-    ;;
-esac
-
-"${CODEX_BIN}" "${CODEX_ARGS[@]}" - < prompt.txt
+      ;;
+    auto)
+      if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
+        CODEX_ARGS+=(--dangerously-bypass-approvals-and-sandbox)
+      else
+        CODEX_ARGS+=(--full-auto)
+      fi
+      ;;
+    *)
+      echo "Unsupported CODEX_EXEC_MODE: ${CODEX_EXEC_MODE}" >&2
+      exit 2
+      ;;
+  esac
+  "${CODEX_BIN}" "${CODEX_ARGS[@]}" - < prompt.txt
+fi
 
 if [ ! -s review.md ]; then
-  echo "Codex failed to generate review in review.md. Creating default message..."
+  echo "${PROVIDER} failed to generate review in review.md. Creating default message..."
   {
     echo "## Code Review for PR #${PR_NUMBER}"
     echo

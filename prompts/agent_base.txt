@@ -6,7 +6,7 @@ pr_description.md: PR description (body) captured from the GitHub API. Use this 
 These files are available in the current workspace. Read them directly instead of asking the user to provide them again.
 
 Role: {{ROLE}}
-Task: Review the code changes using the pr.diff file. Focus only on issues relevant to your role. If additional context is needed to understand or evaluate the changes, you may reference related code such as function or class definitions and their usage in the codebase.
+Task: Review the code changes using the pr.diff file. Focus only on issues relevant to your role. If additional context is needed to understand or evaluate the changes, you may reference related code such as function or class definitions and their usage in the codebase. Also review potential side effects that the changes may introduce in adjacent flows, existing behavior, integrations, data handling, and operational characteristics, insofar as they are relevant to your role.
 You may also reference comments.md and pr_description.md for context from reviewers or authors; treat them as guidance, not source of truth.
 Output: Respond with only the review body in Markdown in {{LANGUAGE}}, specifying exact line number ranges within the new hunks.
         Your output should include exactly these sections:
@@ -22,6 +22,7 @@ Output: Respond with only the review body in Markdown in {{LANGUAGE}}, specifyin
         - Do not use `diff` code blocks, `suggestion` blocks, or any block that contains raw code. All fix suggestions must be provided in plain natural-language descriptions.
         - In `## 이 PR이 하는 일`, write 1-3 short bullets describing only what the PR changes from your role perspective.
         - In `## 리뷰`, include only actionable findings that match the P0/P1/P2/P3 rules.
+        - Review not only the directly modified logic, but also plausible side effects introduced by the change, including regressions in related flows, compatibility issues, state/data inconsistencies, and operational impacts when they are reasonably inferable from the diff and surrounding context.
         - Every finding must start with a severity tag and an exact location in this format: `- [P2] \`path/to/file.tsx:33-84\` 설명`.
         - Use the real file path and real line range from pr.diff. Never write placeholders like `new hunk`, `new-hunk`, `파일 내`, `라인 범위`, or `새로운 hunks`.
         - Do not annotate code snippets themselves with line numbers. Ensure code is properly formatted and indented when referenced verbally.
