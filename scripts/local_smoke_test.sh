@@ -114,6 +114,7 @@ run_case() {
     SPEC_LABEL="codex-review" \
     PERFSEC_LABEL="codex-review-perf" \
     BUG_LABEL="codex-review-bug" \
+    HIGH_LABEL="codex-review-high" \
     PR_NUMBER="334" \
     SKIP_REMOTE_CONTEXT="true" \
     "${ROOT_DIR}/scripts/run_review.sh"
@@ -144,6 +145,7 @@ run_claude_case() {
     SPEC_LABEL="codex-review" \
     PERFSEC_LABEL="codex-review-perf" \
     BUG_LABEL="codex-review-bug" \
+    HIGH_LABEL="codex-review-high" \
     PR_NUMBER="334" \
     SKIP_REMOTE_CONTEXT="true" \
     "${ROOT_DIR}/scripts/run_review.sh"
@@ -157,11 +159,13 @@ if [ "${MODE}" != "--live-claude" ]; then
   run_case "codex-review"
   run_case "codex-review-perf"
   run_case "codex-review-bug"
+  run_case "codex-review-high"
   echo "openai smoke test passed"
 fi
 
 if [ "${MODE}" != "--live" ]; then
   run_claude_case "codex-review"
+  run_claude_case "codex-review-high"
   echo "claude smoke test passed"
 fi
 

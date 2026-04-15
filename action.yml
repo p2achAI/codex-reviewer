@@ -36,6 +36,10 @@ inputs:
     description: "Label for correctness/bug review"
     required: false
     default: "codex-review-bug"
+  high_label:
+    description: "Label for high-quality review (uses premium models)"
+    required: false
+    default: "codex-review-high"
   model:
     description: "Model to use for code review (e.g. gpt-5-mini, o4-mini for OpenAI; claude-sonnet-4-6, claude-opus-4-6 for Claude)"
     required: false
@@ -126,6 +130,7 @@ runs:
         export SPEC_LABEL="${{ inputs.spec_label }}"
         export PERFSEC_LABEL="${{ inputs.perfsec_label }}"
         export BUG_LABEL="${{ inputs.bug_label }}"
+        export HIGH_LABEL="${{ inputs.high_label }}"
         export DEFAULT_LABEL="${{ inputs.label }}"
         export TRIGGER_LABEL="${{ github.event.label.name }}"
         export PR_NUMBER="${{ github.event.pull_request.number }}"
@@ -135,6 +140,15 @@ runs:
         export CODEX_EXEC_MODE="ci"
 
         "$GITHUB_ACTION_PATH/scripts/run_review.sh"
+
+    - name: Post inline review comments
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+        COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
+      run: |
+        python3 "$GITHUB_ACTION_PATH/scripts/post_inline_comments.py" || echo "Warning: inline comments failed (non-fatal)"
 
     - name: Comments on PR
       uses: peter-evans/create-or-update-comment@v3

@@ -18,6 +18,7 @@ SPEC_MARKER="${SPEC_MARKER:-SPEC:}"
 SPEC_LABEL="${SPEC_LABEL:-codex-review}"
 PERFSEC_LABEL="${PERFSEC_LABEL:-codex-review-perf}"
 BUG_LABEL="${BUG_LABEL:-codex-review-bug}"
+HIGH_LABEL="${HIGH_LABEL:-codex-review-high}"
 DEFAULT_LABEL="${DEFAULT_LABEL:-codex-review}"
 TRIGGER_LABEL="${TRIGGER_LABEL:-}"
 PR_NUMBER="${PR_NUMBER:-0}"
@@ -72,6 +73,9 @@ case "${TRIGGER_LABEL}" in
   "${PERFSEC_LABEL}"|"${BUG_LABEL}")
     PROMPT_TEMPLATE="${ACTION_DIR}/prompts/agent_base.txt"
     ;;
+  "${HIGH_LABEL}")
+    PROMPT_TEMPLATE="${ACTION_DIR}/prompt.txt"
+    ;;
   *)
     PROMPT_TEMPLATE="${ACTION_DIR}/prompt.txt"
     ;;
@@ -124,7 +128,21 @@ case "${TRIGGER_LABEL}" in
   "${BUG_LABEL}")
     ROLE="정합성/버그"
     ;;
+  "${HIGH_LABEL}")
+    ROLE="General review"
+    ;;
 esac
+
+# Override model for high-quality label
+if [ "${TRIGGER_LABEL}" = "${HIGH_LABEL}" ]; then
+  if [ "${PROVIDER}" = "claude" ]; then
+    MODEL="claude-opus-4-6"
+  else
+    MODEL="codex-5.4"
+    CODEX_EFFORT="xhigh"
+  fi
+  echo "High-quality review: provider=${PROVIDER} model=${MODEL}"
+fi
 
 if [ -n "${CUSTOM_PROMPT}" ]; then
   printf '%s\n' "${CUSTOM_PROMPT}" > prompt.txt
@@ -150,6 +168,9 @@ if [ "${PROVIDER}" = "claude" ]; then
   "${CLAUDE_BIN}" -p --model "${MODEL}" --dangerously-skip-permissions < prompt.txt > review.md
 else
   CODEX_ARGS=(exec -m "${MODEL}" -o review.md)
+  if [ -n "${CODEX_EFFORT:-}" ]; then
+    CODEX_ARGS+=(--reasoning-effort "${CODEX_EFFORT}")
+  fi
   case "${CODEX_EXEC_MODE}" in
     ci)
       # GitHub-hosted runners are already isolated; avoid nested bwrap sandbox failures in CI.
