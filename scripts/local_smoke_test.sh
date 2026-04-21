@@ -94,6 +94,88 @@ EOF
 EOF
 }
 
+setup_capture_claude_bin() {
+  local case_dir="$1"
+  local capture_file="${case_dir}/claude_invocation.txt"
+  local capture_bin="${case_dir}/capture_claude.sh"
+
+  cat > "${capture_bin}" <<EOF
+#!/bin/bash
+set -euo pipefail
+
+if [ "\${1:-}" = "--version" ] || [ "\${1:-}" = "-v" ]; then
+  echo "2.1.105 (Claude Code)"
+  exit 0
+fi
+
+printf '%s\n' "\$@" > "${capture_file}"
+cat >/dev/null
+cat <<'MOCK'
+## Mock Review
+
+- P2 \`apps/example.py:10-12\` 예시 이슈: 로컬 스모크 테스트용 출력입니다.
+MOCK
+EOF
+
+  chmod +x "${capture_bin}"
+  printf '%s\n' "${capture_bin}"
+}
+
+setup_capture_codex_bin() {
+  local case_dir="$1"
+  local capture_file="${case_dir}/codex_invocation.txt"
+  local capture_bin="${case_dir}/capture_codex.sh"
+
+  cat > "${capture_bin}" <<EOF
+#!/bin/bash
+set -euo pipefail
+
+if [ "\${1:-}" = "--version" ]; then
+  echo "codex-cli ${EXPECTED_CODEX_VERSION}"
+  exit 0
+fi
+
+printf '%s\n' "\$@" > "${capture_file}"
+
+output_file=""
+while [ "\$#" -gt 0 ]; do
+  case "\$1" in
+    -o|--output-last-message)
+      output_file="\$2"
+      shift 2
+      ;;
+    -m|--model|--reasoning-effort|-C|--cd|-c|--config)
+      shift 2
+      ;;
+    exec|--full-auto|--skip-git-repo-check|--ephemeral|--json|--dangerously-bypass-approvals-and-sandbox|--)
+      shift
+      ;;
+    -)
+      shift
+      ;;
+    *)
+      shift
+      ;;
+  esac
+done
+
+if [ -z "\${output_file}" ]; then
+  echo "capture_codex requires -o <file>" >&2
+  exit 2
+fi
+
+cat >/dev/null
+cat > "\${output_file}" <<'MOCK'
+## Mock Review
+
+- P2 \`apps/example.py:10-12\` 예시 이슈: 로컬 스모크 테스트용 출력입니다.
+MOCK
+EOF
+
+  chmod +x "${capture_bin}"
+  printf '%s\n' "${capture_bin}"
+}
+
 run_case() {
   local label="$1"
   local case_dir="${TMP_DIR}/$(echo "${label}" | tr -c 'a-zA-Z0-9' '_')"
@@ -104,6 +186,7 @@ run_case() {
     cd "${case_dir}"
     ACTION_DIR="${ROOT_DIR}" \
     WORKDIR="${case_dir}" \
+    PROVIDER="openai" \
     CODEX_BIN="${CODEX_BIN}" \
     OPENAI_API_KEY="${OPENAI_API_KEY:-mock-key}" \
     PYTHON_BIN="python3" \
@@ -138,7 +221,7 @@ run_claude_case() {
     ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-mock-key}" \
     CLAUDE_BIN="${CLAUDE_BIN}" \
     PYTHON_BIN="python3" \
-    MODEL="claude-sonnet-4-6" \
+    MODEL="claude-opus-4-6" \
     LANGUAGE="korean" \
     TRIGGER_LABEL="${label}" \
     DEFAULT_LABEL="codex-review" \
@@ -155,15 +238,81 @@ run_claude_case() {
   grep -q "Mock Review\|P[0-3]" "${case_dir}/review.md"
 }
 
+run_default_claude_case() {
+  local case_dir="${TMP_DIR}/default_claude"
+  local capture_bin
+  mkdir -p "${case_dir}"
+  setup_fixtures "${case_dir}"
+  capture_bin="$(setup_capture_claude_bin "${case_dir}")"
+
+  (
+    cd "${case_dir}"
+    ACTION_DIR="${ROOT_DIR}" \
+    WORKDIR="${case_dir}" \
+    ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-mock-key}" \
+    CLAUDE_BIN="${capture_bin}" \
+    PYTHON_BIN="python3" \
+    LANGUAGE="korean" \
+    TRIGGER_LABEL="codex-review" \
+    DEFAULT_LABEL="codex-review" \
+    SPEC_LABEL="codex-review" \
+    PERFSEC_LABEL="codex-review-perf" \
+    BUG_LABEL="codex-review-bug" \
+    HIGH_LABEL="codex-review-high" \
+    PR_NUMBER="334" \
+    SKIP_REMOTE_CONTEXT="true" \
+    "${ROOT_DIR}/scripts/run_review.sh"
+  )
+
+  test -s "${case_dir}/review.md"
+  grep -q -- "--model" "${case_dir}/claude_invocation.txt"
+  grep -q -- "claude-opus-4-6" "${case_dir}/claude_invocation.txt"
+}
+
+run_openai_provider_case() {
+  local case_dir="${TMP_DIR}/openai_provider"
+  local capture_bin
+  mkdir -p "${case_dir}"
+  setup_fixtures "${case_dir}"
+  capture_bin="$(setup_capture_codex_bin "${case_dir}")"
+
+  (
+    cd "${case_dir}"
+    ACTION_DIR="${ROOT_DIR}" \
+    WORKDIR="${case_dir}" \
+    PROVIDER="openai" \
+    MODEL="claude-opus-4-6" \
+    OPENAI_API_KEY="${OPENAI_API_KEY:-mock-key}" \
+    CODEX_BIN="${capture_bin}" \
+    PYTHON_BIN="python3" \
+    LANGUAGE="korean" \
+    TRIGGER_LABEL="codex-review" \
+    DEFAULT_LABEL="codex-review" \
+    SPEC_LABEL="codex-review" \
+    PERFSEC_LABEL="codex-review-perf" \
+    BUG_LABEL="codex-review-bug" \
+    HIGH_LABEL="codex-review-high" \
+    PR_NUMBER="334" \
+    SKIP_REMOTE_CONTEXT="true" \
+    "${ROOT_DIR}/scripts/run_review.sh"
+  )
+
+  test -s "${case_dir}/review.md"
+  grep -q -- "-m" "${case_dir}/codex_invocation.txt"
+  grep -q -- "gpt-5-mini" "${case_dir}/codex_invocation.txt"
+}
+
 if [ "${MODE}" != "--live-claude" ]; then
   run_case "codex-review"
   run_case "codex-review-perf"
   run_case "codex-review-bug"
   run_case "codex-review-high"
+  run_openai_provider_case
   echo "openai smoke test passed"
 fi
 
 if [ "${MODE}" != "--live" ]; then
+  run_default_claude_case
   run_claude_case "codex-review"
   run_claude_case "codex-review-high"
   echo "claude smoke test passed"

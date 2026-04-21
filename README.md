@@ -2,7 +2,7 @@
 
 [![GitHub Marketplace](https://img.shields.io/badge/Marketplace-Codex%20Reviewer-brightgreen.svg?colorA=24292e&colorB=0366d6)](https://github.com/marketplace/actions/codex-reviewer)
 
-An automated GitHub Action that reviews pull requests and provides AI-powered code feedback. It leverages OpenAI's powerful models to generate summaries, improvement suggestions, and detect potential bugs in your PRs.
+An automated GitHub Action that reviews pull requests and provides AI-powered code feedback. It supports both Claude and OpenAI models to generate summaries, improvement suggestions, and detect potential bugs in your PRs.
 
 ## Key Features
 
@@ -35,15 +35,16 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.label.name == 'codex-review'
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-    
+      - name: Checkout code
+        uses: actions/checkout@v3
+
       - uses: p2achAI/codex-reviewer@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           label: 'codex-review'
-          model: "o4-mini"
+          provider: "claude"
+          model: "claude-opus-4-6"
           language: "korean"
           custom_prompt: "Please review the code"
           clickup_api_token: ${{ secrets.CLICKUP_API_TOKEN }}
@@ -58,13 +59,16 @@ jobs:
 | Input | Description | Required | Default |
 |------|------|:----:|--------|
 | `github_token` | GitHub token | ✅ | |
-| `openai_api_key` | OpenAI API Key | ✅ | |
+| `provider` | AI provider (`claude` or `openai`) | ❌ | `claude` |
+| `anthropic_api_key` | Anthropic API Key | Claude 사용 시 필요 | |
+| `openai_api_key` | OpenAI API Key | OpenAI 사용 시 필요 | |
 | `label` | Review trigger label | ✅ | `codex-review` |
 | `spec_label` | Label for spec+tests review | ❌ | `codex-review` |
 | `perfsec_label` | Label for performance/security review | ❌ | `codex-review-perf` |
 | `bug_label` | Label for correctness/bug review | ❌ | `codex-review-bug` |
-| `model` | OpenAI model to use | ❌ | `codex-mini-latest` |
+| `model` | Review model to use | ❌ | `claude-opus-4-6` |
 | `codex_version` | Pinned `@openai/codex` version installed in GitHub Actions | ❌ | `0.115.0-alpha.27` |
+| `claude_code_version` | Pinned `@anthropic-ai/claude-code` version installed in GitHub Actions | ❌ | `2.1.105` |
 | `language` | Review language | ❌ | `english` |
 | `custom_prompt` | Custom review prompt | ❌ | |
 | `enable_multi_agent` | Deprecated. Multi-agent review is no longer used | ❌ | `false` |
@@ -80,7 +84,7 @@ jobs:
 
 1. The action is triggered when a PR is labeled with the specified label (default: `codex-review`).
 2. It analyzes the code changes in the PR.
-3. Using an OpenAI model, it generates a comprehensive code review.
+3. Using the configured AI provider and model, it generates a comprehensive code review.
 4. The review is automatically posted as a comment on the PR.
 
 ### Local Smoke Test
@@ -91,9 +95,10 @@ jobs:
 bash ./scripts/local_smoke_test.sh
 ```
 
-- 기본값은 `scripts/mock_codex.sh`를 사용하므로 API 키 없이도 실행됩니다.
+- 기본 모드에서는 mock Codex/Claude 바이너리를 사용하므로 API 키 없이도 실행됩니다.
 - 실제 Codex까지 포함해 확인하려면 `OPENAI_API_KEY`를 설정한 뒤 `bash ./scripts/local_smoke_test.sh --live` 를 실행하세요.
-- 현재 고정 버전은 `@openai/codex@0.115.0-alpha.27` 입니다.
+- 실제 Claude Code까지 포함해 확인하려면 `ANTHROPIC_API_KEY`를 설정한 뒤 `bash ./scripts/local_smoke_test.sh --live-claude` 를 실행하세요.
+- 현재 고정 버전은 `@anthropic-ai/claude-code@2.1.105`, `@openai/codex@0.115.0-alpha.27` 입니다.
 - GitHub Actions에서는 중첩 샌드박스 오류를 피하기 위해 `--dangerously-bypass-approvals-and-sandbox` 로 실행합니다. 러너 자체가 격리 환경이므로 CI에서만 이 모드를 사용합니다.
 
 ### Label-based Review Modes

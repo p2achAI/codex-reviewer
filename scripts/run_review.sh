@@ -5,8 +5,8 @@ ACTION_DIR="${ACTION_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 WORKDIR="${WORKDIR:-$(pwd)}"
 CODEX_BIN="${CODEX_BIN:-codex}"
 PYTHON_BIN="${PYTHON_BIN:-python3}"
-PROVIDER="${PROVIDER:-openai}"
-MODEL="${MODEL:-gpt-5-mini}"
+PROVIDER="${PROVIDER:-claude}"
+MODEL="${MODEL:-claude-opus-4-6}"
 LANGUAGE="${LANGUAGE:-english}"
 CUSTOM_PROMPT="${CUSTOM_PROMPT:-}"
 CLICKUP_URL_INPUT="${CLICKUP_URL_INPUT:-}"
@@ -28,9 +28,12 @@ SKIP_REMOTE_CONTEXT="${SKIP_REMOTE_CONTEXT:-false}"
 CODEX_EXEC_MODE="${CODEX_EXEC_MODE:-auto}"
 CLAUDE_BIN="${CLAUDE_BIN:-claude}"
 
-# Switch model default when using Claude with the OpenAI default model
+# Normalize default model when provider/model defaults cross provider boundaries.
 if [ "${PROVIDER}" = "claude" ] && [ "${MODEL}" = "gpt-5-mini" ]; then
-  MODEL="claude-sonnet-4-6"
+  MODEL="claude-opus-4-6"
+fi
+if [ "${PROVIDER}" = "openai" ] && [ "${MODEL}" = "claude-opus-4-6" ]; then
+  MODEL="gpt-5-mini"
 fi
 
 # Validate API key for the selected provider

@@ -11,7 +11,7 @@ inputs:
   provider:
     description: "AI provider to use: openai or claude"
     required: false
-    default: "openai"
+    default: "claude"
   openai_api_key:
     description: "OpenAI API Key (required when provider=openai)"
     required: false
@@ -43,7 +43,7 @@ inputs:
   model:
     description: "Model to use for code review (e.g. gpt-5-mini, o4-mini for OpenAI; claude-sonnet-4-6, claude-opus-4-6 for Claude)"
     required: false
-    default: "gpt-5-mini"
+    default: "claude-opus-4-6"
   codex_version:
     description: "Pinned @openai/codex version to install"
     required: false
