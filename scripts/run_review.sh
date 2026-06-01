@@ -7,6 +7,7 @@ CODEX_BIN="${CODEX_BIN:-codex}"
 PYTHON_BIN="${PYTHON_BIN:-python3}"
 PROVIDER="${PROVIDER:-claude}"
 MODEL="${MODEL:-claude-opus-4-6}"
+EFFORT="${EFFORT:-high}"
 LANGUAGE="${LANGUAGE:-english}"
 CUSTOM_PROMPT="${CUSTOM_PROMPT:-}"
 CLICKUP_URL_INPUT="${CLICKUP_URL_INPUT:-}"
@@ -144,7 +145,7 @@ if [ "${TRIGGER_LABEL}" = "${HIGH_LABEL}" ]; then
     MODEL="codex-5.4"
     CODEX_EFFORT="xhigh"
   fi
-  echo "High-quality review: provider=${PROVIDER} model=${MODEL}"
+  echo "High-quality review: provider=${PROVIDER} model=${MODEL} effort=${EFFORT}"
 fi
 
 if [ -n "${CUSTOM_PROMPT}" ]; then
@@ -168,7 +169,7 @@ PY
 cat prompt.txt
 
 if [ "${PROVIDER}" = "claude" ]; then
-  "${CLAUDE_BIN}" -p --model "${MODEL}" --dangerously-skip-permissions < prompt.txt > review.md
+  "${CLAUDE_BIN}" -p --model "${MODEL}" --effort "${EFFORT}" --dangerously-skip-permissions < prompt.txt > review.md
 else
   CODEX_ARGS=(exec -m "${MODEL}" -o review.md)
   if [ -n "${CODEX_EFFORT:-}" ]; then

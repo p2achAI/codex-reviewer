@@ -44,6 +44,10 @@ inputs:
     description: "Model to use for code review (e.g. gpt-5-mini, o4-mini for OpenAI; claude-sonnet-4-6, claude-opus-4-6 for Claude)"
     required: false
     default: "claude-opus-4-6"
+  effort:
+    description: "Claude Code effort level for code review (low, medium, high, xhigh, max)"
+    required: false
+    default: "high"
   codex_version:
     description: "Pinned @openai/codex version to install"
     required: false
@@ -119,6 +123,7 @@ runs:
         export ACTION_DIR="$GITHUB_ACTION_PATH"
         export PROVIDER="${{ inputs.provider }}"
         export MODEL="${{ inputs.model }}"
+        export EFFORT="${{ inputs.effort }}"
         export LANGUAGE="${{ inputs.language }}"
         export CUSTOM_PROMPT="${{ inputs.custom_prompt }}"
         export CLICKUP_URL_INPUT="${{ inputs.clickup_url }}"

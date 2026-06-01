@@ -267,6 +267,8 @@ run_default_claude_case() {
   test -s "${case_dir}/review.md"
   grep -q -- "--model" "${case_dir}/claude_invocation.txt"
   grep -q -- "claude-opus-4-6" "${case_dir}/claude_invocation.txt"
+  grep -q -- "--effort" "${case_dir}/claude_invocation.txt"
+  grep -q -- "high" "${case_dir}/claude_invocation.txt"
 }
 
 run_openai_provider_case() {

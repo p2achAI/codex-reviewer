@@ -12,7 +12,7 @@ while [ "$#" -gt 0 ]; do
     -p|--print|--dangerously-skip-permissions)
       shift
       ;;
-    --model|--output-format|--permission-mode)
+    --model|--effort|--output-format|--permission-mode)
       shift 2
       ;;
     --)
