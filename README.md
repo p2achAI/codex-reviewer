@@ -70,7 +70,7 @@ jobs:
 | `model` | Review model to use | ❌ | `claude-opus-4-6` |
 | `effort` | Claude Code effort level (`low`, `medium`, `high`, `xhigh`, `max`) | ❌ | `high` |
 | `codex_version` | Pinned `@openai/codex` version installed in GitHub Actions | ❌ | `0.115.0-alpha.27` |
-| `claude_code_version` | Pinned `@anthropic-ai/claude-code` version installed in GitHub Actions | ❌ | `2.1.105` |
+| `claude_code_version` | Pinned `@anthropic-ai/claude-code` version installed in GitHub Actions | ❌ | `2.1.150` |
 | `language` | Review language | ❌ | `english` |
 | `custom_prompt` | Custom review prompt | ❌ | |
 | `enable_multi_agent` | Deprecated. Multi-agent review is no longer used | ❌ | `false` |
@@ -100,7 +100,7 @@ bash ./scripts/local_smoke_test.sh
 - 기본 모드에서는 mock Codex/Claude 바이너리를 사용하므로 API 키 없이도 실행됩니다.
 - 실제 Codex까지 포함해 확인하려면 `OPENAI_API_KEY`를 설정한 뒤 `bash ./scripts/local_smoke_test.sh --live` 를 실행하세요.
 - 실제 Claude Code까지 포함해 확인하려면 `ANTHROPIC_API_KEY`를 설정한 뒤 `bash ./scripts/local_smoke_test.sh --live-claude` 를 실행하세요.
-- 현재 고정 버전은 `@anthropic-ai/claude-code@2.1.105`, `@openai/codex@0.115.0-alpha.27` 입니다.
+- 현재 고정 버전은 `@anthropic-ai/claude-code@2.1.150`, `@openai/codex@0.115.0-alpha.27` 입니다.
 - GitHub Actions에서는 중첩 샌드박스 오류를 피하기 위해 `--dangerously-bypass-approvals-and-sandbox` 로 실행합니다. 러너 자체가 격리 환경이므로 CI에서만 이 모드를 사용합니다.
 
 ### Label-based Review Modes

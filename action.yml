@@ -55,7 +55,7 @@ inputs:
   claude_code_version:
     description: "Pinned @anthropic-ai/claude-code version to install"
     required: false
-    default: "2.1.105"
+    default: "2.1.150"
   language:
     description: "Language for the review output (e.g. english, korean, japanese, etc.)"
     required: false
