@@ -45,6 +45,7 @@ jobs:
           label: 'codex-review'
           provider: "claude"
           model: "claude-opus-4-6"
+          effort: "high"
           language: "korean"
           custom_prompt: "Please review the code"
           clickup_api_token: ${{ secrets.CLICKUP_API_TOKEN }}
@@ -67,6 +68,7 @@ jobs:
 | `perfsec_label` | Label for performance/security review | ❌ | `codex-review-perf` |
 | `bug_label` | Label for correctness/bug review | ❌ | `codex-review-bug` |
 | `model` | Review model to use | ❌ | `claude-opus-4-6` |
+| `effort` | Claude Code effort level (`low`, `medium`, `high`, `xhigh`, `max`) | ❌ | `high` |
 | `codex_version` | Pinned `@openai/codex` version installed in GitHub Actions | ❌ | `0.115.0-alpha.27` |
 | `claude_code_version` | Pinned `@anthropic-ai/claude-code` version installed in GitHub Actions | ❌ | `2.1.105` |
 | `language` | Review language | ❌ | `english` |
