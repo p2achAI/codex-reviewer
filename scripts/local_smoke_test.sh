@@ -320,4 +320,8 @@ if [ "${MODE}" != "--live" ]; then
   echo "claude smoke test passed"
 fi
 
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
+  -s "${ROOT_DIR}/scripts" \
+  -p 'test_*.py'
+
 echo "local smoke test passed (mode=${MODE})"
