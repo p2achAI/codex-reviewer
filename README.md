@@ -17,43 +17,53 @@ An automated GitHub Action that reviews pull requests and provides AI-powered co
 
 ### Basic Setup
 
-Create a workflow file in your repository's `.github/workflows` directory:
+For organization repositories, call the reusable workflow. It centralizes the
+runner, permissions, trigger filtering, and composite action implementation:
 
 ```yaml
 name: Codex PR Review
 
 on:
   pull_request:
-    types: [labeled] # add synchronize if you want to trigger the action when the PR is synchronized
+    types: [opened, synchronize, reopened, ready_for_review, labeled]
+
+permissions: {}
 
 jobs:
-  review:
+  codex_review:
     permissions:
       contents: read
       pull-requests: write
-      issues: write
-    runs-on: ubuntu-latest
-    if: github.event.label.name == 'codex-review'
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - uses: p2achAI/codex-reviewer@v1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          label: 'codex-review'
-          provider: "claude"
-          model: "claude-opus-4-6"
-          effort: "high"
-          language: "korean"
-          custom_prompt: "Please review the code"
-          clickup_api_token: ${{ secrets.CLICKUP_API_TOKEN }}
-          clickup_url: "https://app.clickup.com/t/ABC-123"
-          clickup_team_id: "90144302619"
-          clickup_custom_task_ids: "true"
-          spec_comment_marker: "SPEC:"
+    uses: p2achAI/codex-reviewer/.github/workflows/review.yml@<release-commit-sha>
+    secrets:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      CLICKUP_API_TOKEN: ${{ secrets.CLICKUP_API_TOKEN }}
+      CLICKUP_TEAM_ID: ${{ secrets.CLICKUP_TEAM_ID }}
 ```
+
+Use the full commit SHA behind a release, not a mutable tag. Enable Dependabot
+for `github-actions` in each consumer repository so these immutable references
+are updated by reviewable pull requests instead of manual edits:
+
+```yaml
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+```
+
+The reusable workflow automatically reviews non-draft PRs on `opened` and
+`ready_for_review`. The exact labels `codex-review`, `codex-review-perf`,
+`codex-review-bug`, and `codex-review-high` trigger explicit review modes.
+`synchronize` and `reopened` keep the check current without generating a new
+review. Fork pull requests never run on the self-hosted reviewer.
+
+Use the composite action directly only when a repository needs a custom runner
+or trigger policy. Direct consumers must pin this repository and every nested
+action to full commit SHAs.
 
 ### Input Parameters
 

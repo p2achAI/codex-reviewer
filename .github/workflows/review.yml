@@ -1,0 +1,138 @@
+name: Reusable Codex Review
+
+on:
+  workflow_call:
+    inputs:
+      provider:
+        description: AI provider (claude or openai)
+        type: string
+        default: claude
+      model:
+        description: Model passed to the reviewer
+        type: string
+        default: claude-opus-4-6
+      effort:
+        description: Review effort level
+        type: string
+        default: high
+      language:
+        description: Review output language
+        type: string
+        default: korean
+      codex_version:
+        description: Pinned Codex CLI version
+        type: string
+        default: 0.115.0-alpha.27
+      claude_code_version:
+        description: Pinned Claude Code version
+        type: string
+        default: 2.1.150
+    secrets:
+      OPENAI_API_KEY:
+        required: false
+      ANTHROPIC_API_KEY:
+        required: false
+      CLICKUP_API_TOKEN:
+        required: false
+      CLICKUP_TEAM_ID:
+        required: false
+
+concurrency:
+  group: codex-review-${{ github.repository }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  codex_review:
+    name: codex_review
+    if: >-
+      github.event.action != 'labeled' ||
+      github.event.label.name == 'codex-review' ||
+      github.event.label.name == 'codex-review-perf' ||
+      github.event.label.name == 'codex-review-bug' ||
+      github.event.label.name == 'codex-review-high'
+    runs-on: [self-hosted, Linux, X64, io-light]
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Resolve review mode
+        id: resolve_mode
+        shell: bash
+        env:
+          EVENT_ACTION: ${{ github.event.action }}
+          IS_DRAFT: ${{ github.event.pull_request.draft }}
+          LABEL_NAME: ${{ github.event.label.name }}
+          HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
+          CURRENT_REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          mode=""
+          if [ "$HEAD_REPOSITORY" != "$CURRENT_REPOSITORY" ]; then
+            echo "::warning::Fork PR에서는 self-hosted AI 리뷰를 실행하지 않음"
+          else
+            case "${EVENT_ACTION:-}" in
+              opened)
+                if [ "${IS_DRAFT:-true}" = "false" ]; then
+                  mode="spec"
+                fi
+                ;;
+              ready_for_review)
+                mode="spec"
+                ;;
+              labeled)
+                case "${LABEL_NAME:-}" in
+                  "codex-review") mode="spec" ;;
+                  "codex-review-perf") mode="perf" ;;
+                  "codex-review-bug") mode="bug" ;;
+                  "codex-review-high") mode="high" ;;
+                esac
+                ;;
+              synchronize|reopened)
+                # Keep a current successful check without generating another review.
+                ;;
+            esac
+          fi
+
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+
+      - name: Check out pull request
+        if: steps.resolve_mode.outputs.mode != ''
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+
+      - name: Check out reviewer implementation
+        if: steps.resolve_mode.outputs.mode != ''
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          repository: ${{ job.workflow_repository }}
+          ref: ${{ job.workflow_sha }}
+          path: .github-actions/codex-reviewer
+          persist-credentials: false
+
+      - name: Isolate global npm install path
+        if: steps.resolve_mode.outputs.mode != ''
+        shell: bash
+        run: |
+          npm_prefix="$RUNNER_TEMP/npm-global-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT-$GITHUB_JOB"
+          mkdir -p "$npm_prefix"
+          echo "NPM_CONFIG_PREFIX=$npm_prefix" >> "$GITHUB_ENV"
+          echo "$npm_prefix/bin" >> "$GITHUB_PATH"
+
+      - name: Run review
+        if: steps.resolve_mode.outputs.mode != ''
+        uses: ./.github-actions/codex-reviewer
+        with:
+          github_token: ${{ github.token }}
+          provider: ${{ inputs.provider }}
+          model: ${{ inputs.model }}
+          effort: ${{ inputs.effort }}
+          language: ${{ inputs.language }}
+          codex_version: ${{ inputs.codex_version }}
+          claude_code_version: ${{ inputs.claude_code_version }}
+          openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          clickup_api_token: ${{ secrets.CLICKUP_API_TOKEN }}
+          clickup_team_id: ${{ secrets.CLICKUP_TEAM_ID }}

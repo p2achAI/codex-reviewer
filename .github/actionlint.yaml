@@ -1,0 +1,12 @@
+self-hosted-runner:
+  labels:
+    - pro6000-cpu
+    - io-light
+    - io-heavy
+
+paths:
+  .github/workflows/review.yml:
+    ignore:
+      # GitHub.com exposes these for jobs defined by reusable workflows.
+      # actionlint 1.7.12 has not added them to its job context schema yet.
+      - 'property "workflow_(repository|sha)" is not defined'
