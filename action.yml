@@ -100,7 +100,7 @@ runs:
   using: "composite"
   steps:
     - name: Setup Node.js
-      uses: actions/setup-node@v7
+      uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
       with:
         node-version: "22"
 
@@ -155,9 +155,9 @@ runs:
       run: |
         python3 "$GITHUB_ACTION_PATH/scripts/post_inline_comments.py" || echo "Warning: inline comments failed (non-fatal)"
 
-    - name: Comments on PR
-      uses: peter-evans/create-or-update-comment@v5
-      with:
-        token: ${{ inputs.github_token }}
-        issue-number: ${{ github.event.pull_request.number }}
-        body-path: review.md
+    - name: Comment on PR
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+      run: python3 "$GITHUB_ACTION_PATH/scripts/post_review_comment.py"
