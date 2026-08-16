@@ -27,14 +27,19 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review, labeled]
 
-permissions:
-  contents: read
-  pull-requests: write
+permissions: {}
 
 jobs:
   codex_review:
+    permissions:
+      contents: read
+      pull-requests: write
     uses: p2achAI/codex-reviewer/.github/workflows/review.yml@<release-commit-sha>
-    secrets: inherit
+    secrets:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      CLICKUP_API_TOKEN: ${{ secrets.CLICKUP_API_TOKEN }}
+      CLICKUP_TEAM_ID: ${{ secrets.CLICKUP_TEAM_ID }}
 ```
 
 Use the full commit SHA behind a release, not a mutable tag. Enable Dependabot
