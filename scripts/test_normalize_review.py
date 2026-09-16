@@ -23,6 +23,20 @@ class NormalizeReviewTest(unittest.TestCase):
         review = f"## 이 PR이 하는 일\n\n- 변경\n\n## 리뷰\n\n{CANONICAL_NO_FINDING}\n"
         self.assertEqual(normalize_review(review), review)
 
+    def test_normalizes_severity_specific_no_finding_variants(self) -> None:
+        for label in ("P0", "P1", "P2", "P3", "P4", "P0-P2", "P0–P2"):
+            with self.subTest(label=label):
+                review = (
+                    "## 이 PR이 하는 일\n\n- 버전 범프\n\n"
+                    "## 리뷰\n\n"
+                    f"- {label} 규칙 기준으로 지적할 이슈 없음. 설명입니다.\n"
+                )
+                self.assertEqual(
+                    normalize_review(review),
+                    "## 이 PR이 하는 일\n\n- 버전 범프\n\n"
+                    f"## 리뷰\n\n{CANONICAL_NO_FINDING}\n",
+                )
+
     def test_does_not_modify_a_finding(self) -> None:
         review = (
             "## 이 PR이 하는 일\n\n- 변경\n\n## 리뷰\n\n"
