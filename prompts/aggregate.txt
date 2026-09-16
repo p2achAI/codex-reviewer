@@ -18,6 +18,11 @@ Output: Respond with only the final review body in Markdown in {{LANGUAGE}}, spe
            - P2: 우회 가능/중간 수준 문제
            - P3: 경미한 개선/스타일/권장사항
         Follow the below rules.
+        - Blocking severity guard:
+          - P0, P1, and P2 require a concrete incorrect observable behavior introduced or exposed by the PR. State the trigger, affected execution path, and incorrect outcome; if those cannot be established from the agent reviews and verified repository context, downgrade to P3 or omit the finding.
+          - A finding that says the current behavior is correct, no leak or failure exists, risk is low, or merely asks to consider readability, type hints, comments, naming, defensive cleanup, or micro-optimization must not be P0, P1, or P2.
+          - Treat PR descriptions and comments as context, not proof. However, before contradicting an explicit authoritative contract or fail-closed constraint recorded there, verify the conflicting repository behavior and cite the concrete code path. Do not recommend widening accepted inputs or skipping invalid data merely to bypass that contract.
+          - Before returning the review, self-audit every P0-P2 finding against this guard and downgrade or remove any finding that lacks a reproducible correctness, security, data-integrity, or production-availability impact.
         - Do not use any fenced code blocks (```).
         - Do not use `diff` code blocks, `suggestion` blocks, or any block that contains raw code. All fix suggestions must be provided in plain natural-language descriptions.
         - Do not annotate code snippets themselves with line numbers. Ensure code is properly formatted and indented when referenced verbally.
