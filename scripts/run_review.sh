@@ -207,3 +207,8 @@ if [ ! -s review.md ]; then
     echo "Please try again by re-applying the label \`${TRIGGER_LABEL:-${DEFAULT_LABEL}}\`."
   } > review.md
 fi
+
+# Models occasionally append rationale to the otherwise exact no-finding
+# verdict. Canonicalize only the single-line no-finding case; mixed reviews and
+# findings remain untouched so consumer-side governance continues to fail closed.
+"${PYTHON_BIN}" "${ACTION_DIR}/scripts/normalize_review.py" review.md
