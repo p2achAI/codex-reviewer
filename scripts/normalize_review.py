@@ -10,7 +10,7 @@ from pathlib import Path
 
 CANONICAL_NO_FINDING = "- Pn 규칙 기준으로 지적할 이슈 없음."
 NO_FINDING_PREFIX = re.compile(
-    r"^- (?:Pn|P4) 규칙 기준으로 지적할 이슈 없음\.(?:\s+.*)?$"
+    r"^- (?:Pn|P[0-4]|P0[–-]P2) 규칙 기준으로 지적할 이슈 없음\.(?:\s+.*)?$"
 )
 SECTION_HEADING = re.compile(r"^##\s+(.+?)\s*$")
 
