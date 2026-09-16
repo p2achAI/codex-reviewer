@@ -20,6 +20,11 @@ Output: Respond with only the final review body in Markdown in LANGUAGE, specify
         - When referring to locations to change, specify file paths and line ranges, but do NOT include inline code snippets or code blocks — describe the change in prose (what to remove, rename, or change, and why).
         - Do not annotate code snippets themselves with line numbers. Ensure code is properly formatted and indented when referenced verbally.
         - If there are no actionable findings, `## 리뷰` must contain exactly one bullet: `- Pn 규칙 기준으로 지적할 이슈 없음.`
+        - Blocking severity guard:
+          - P0, P1, and P2 require a concrete incorrect observable behavior introduced or exposed by the PR. State the trigger, affected execution path, and incorrect outcome; if those cannot be established from the diff and verified repository context, downgrade to P3 or omit the finding.
+          - A finding that says the current behavior is correct, no leak or failure exists, risk is low, or merely asks to consider readability, type hints, comments, naming, defensive cleanup, or micro-optimization must not be P0, P1, or P2.
+          - Treat PR descriptions and comments as context, not proof. However, before contradicting an explicit authoritative contract or fail-closed constraint recorded there, verify the conflicting repository behavior and cite the concrete code path. Do not recommend widening accepted inputs or skipping invalid data merely to bypass that contract.
+          - Before returning the review, self-audit every P0-P2 finding against this guard and downgrade or remove any finding that lacks a reproducible correctness, security, data-integrity, or production-availability impact.
         - Do not ask the user to provide `pr.diff`, file contents, access permissions, or any other workspace files.
         - Do not claim a file is unavailable until you have attempted to read it from the current workspace.
         

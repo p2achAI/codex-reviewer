@@ -31,6 +31,11 @@ Output: Respond with only the review body in Markdown in {{LANGUAGE}}, specifyin
         - If spec.md is missing or empty, state that the spec could not be loaded and only review obvious mismatches if any; do not invent requirements.
         - Do not create extra sections such as `버그 또는 잠재적 문제`, `검토 결과 및 제안`, `범위`, or `요약`.
         - If there are no actionable findings, `## 리뷰` must contain exactly one bullet: `- Pn 규칙 기준으로 지적할 이슈 없음.`
+        - Blocking severity guard:
+          - P0, P1, and P2 require a concrete incorrect observable behavior introduced or exposed by the PR. State the trigger, affected execution path, and incorrect outcome; if those cannot be established from the diff and verified repository context, downgrade to P3 or omit the finding.
+          - A finding that says the current behavior is correct, no leak or failure exists, risk is low, or merely asks to consider readability, type hints, comments, naming, defensive cleanup, or micro-optimization must not be P0, P1, or P2.
+          - Treat PR descriptions and comments as context, not proof. However, before contradicting an explicit authoritative contract or fail-closed constraint recorded there, verify the conflicting repository behavior and cite the concrete code path. Do not recommend widening accepted inputs or skipping invalid data merely to bypass that contract.
+          - Before returning the review, self-audit every P0-P2 finding against this guard and downgrade or remove any finding that lacks a reproducible correctness, security, data-integrity, or production-availability impact.
         - Even when spec.md is empty, do not stop early or ask the user to provide missing files. Continue with a code review based on pr.diff and any available PR context.
         - Do not ask the user to provide `pr.diff`, `spec.md`, `comments.md`, `pr_description.md`, or file access permissions.
         - Do not claim these files are unavailable unless you actually tried to read them from the workspace and they are truly missing.

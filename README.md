@@ -119,6 +119,13 @@ bash ./scripts/local_smoke_test.sh
 - `perfsec_label` (default `codex-review-perf`): runs the **Performance/Security** review prompt
 - `bug_label` (default `codex-review-bug`): runs the **Correctness/Bug** review prompt
 
+All built-in review modes apply the same blocking-severity contract. P0-P2
+findings must identify a concrete trigger, affected execution path, and
+incorrect observable outcome. Suggestions about readability, type hints,
+comments, defensive cleanup, or micro-optimization are P3 at most, and are
+omitted when they are not actionable. The reviewer also self-audits blocking
+findings before returning the final review.
+
 ### Spec Compliance (ClickUp)
 
 If `clickup_api_token` is provided, the action can fetch a ClickUp task and compare the PR with the planned requirements. You can pass the ClickUp task URL via `clickup_url` input, or add a PR comment like:
