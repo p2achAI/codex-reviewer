@@ -32,6 +32,14 @@ class PromptSeverityContractTest(unittest.TestCase):
         prompt_files = {ROOT / "prompt.txt", *ROOT.glob("prompts/*.txt")}
         self.assertEqual(set(PROMPTS), prompt_files)
 
+    def test_aggregate_prompt_enforces_exact_no_finding_verdict(self) -> None:
+        text = (ROOT / "prompts" / "aggregate.txt").read_text(encoding="utf-8")
+        self.assertIn("The final review must include exactly these sections:", text)
+        self.assertIn("`## 이 PR이 하는 일`", text)
+        self.assertIn("`## 리뷰`", text)
+        self.assertIn("`- Pn 규칙 기준으로 지적할 이슈 없음.`", text)
+        self.assertIn("Do not replace `Pn`", text)
+
 
 if __name__ == "__main__":
     unittest.main()
