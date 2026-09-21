@@ -107,12 +107,22 @@ runs:
       shell: bash
       run: python3 "$GITHUB_ACTION_PATH/scripts/test_prompt_severity_contract.py"
 
+    - name: Reserve the single PR review attempt
+      id: claim_review
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+      run: python3 "$GITHUB_ACTION_PATH/scripts/claim_pr_review.py"
+
     - name: Setup Node.js
+      if: steps.claim_review.outputs.allowed == 'true'
       uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
       with:
         node-version: "22"
 
     - name: Review with Codex
+      if: steps.claim_review.outputs.allowed == 'true'
       shell: bash
       env:
         OPENAI_API_KEY: ${{ inputs.openai_api_key }}
@@ -156,6 +166,7 @@ runs:
         "$GITHUB_ACTION_PATH/scripts/run_review.sh"
 
     - name: Post inline review comments
+      if: steps.claim_review.outputs.allowed == 'true'
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}
@@ -165,6 +176,7 @@ runs:
         python3 "$GITHUB_ACTION_PATH/scripts/post_inline_comments.py" || echo "Warning: inline comments failed (non-fatal)"
 
     - name: Comment on PR
+      if: steps.claim_review.outputs.allowed == 'true'
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}

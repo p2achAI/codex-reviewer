@@ -10,7 +10,7 @@ An automated GitHub Action that reviews pull requests and provides AI-powered co
 - 🔍 **Code Review**: Provides suggestions to improve code quality
 - 🐛 **Bug Detection**: Identifies potential issues and bugs
 - 🌎 **Multilingual Support**: Generate reviews in multiple languages
-- 🎯 **Single-Agent Review**: One review prompt runs per label and writes a single PR comment
+- 🎯 **Single-Agent Review**: At most one review attempt per PR across all labels and commits
 - 📋 **Spec Compliance**: Optional ClickUp spec agent checks alignment with planned requirements
 
 ## Usage
@@ -64,6 +64,31 @@ review. Fork pull requests never run on the self-hosted reviewer.
 Use the composite action directly only when a repository needs a custom runner
 or trigger policy. Direct consumers must pin this repository and every nested
 action to full commit SHAs.
+
+### PR당 1회 비용 제한
+
+모든 provider와 리뷰 모드를 합쳐 PR당 최초 1회만 실행합니다. 모델 호출 전에
+PR 댓글에 실행권 사용 기록을 저장하므로 실패·취소·새 커밋·라벨 재부착·Actions
+재실행도 추가 리뷰를 실행하지 않습니다. 조회/기록 API 오류 시 호출하지 않습니다.
+기록 댓글을 삭제/수정하면 제한이 해제될 수 있으므로 보존해야 합니다.
+도입 이전의 마커 없는 리뷰는 소급 집계하지 않습니다. 한 번의 리뷰 안에서 발생하는
+여러 모델 요청이나 토큰 비용 자체를 제한하는 기능은 아닙니다.
+
+재사용 workflow에는 직렬화가 포함되어 있습니다. **composite action 직접 호출자는
+모두 같은 PR 단위 concurrency를 반드시 설정해야 합니다.** 댓글 확인/작성 자체는
+원자적 잠금이 아니므로 이 설정 없이 동시에 호출하면 1회 제한을 보장하지 못합니다.
+SHA·리뷰 모드·workflow 이름을 group에 추가하지 마세요.
+
+```yaml
+jobs:
+  codex_review:
+    concurrency:
+      group: codex-review-${{ github.repository }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
+    # runs-on, permissions, steps ...
+```
+
+새 action 릴리스를 사용하도록 호출 저장소의 `uses` 참조도 함께 갱신해야 합니다.
 
 ### Input Parameters
 

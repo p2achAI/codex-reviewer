@@ -327,3 +327,5 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
 echo "local smoke test passed (mode=${MODE})"
 
 python3 "${ROOT_DIR}/scripts/test_bedrock_provider.py"
+
+python3 "${ROOT_DIR}/scripts/test_claim_pr_review.py"
