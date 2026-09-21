@@ -153,3 +153,25 @@ MIT
 ## Contributing
 
 Issues and pull requests are welcome! Help us improve this action.
+
+### Amazon Bedrock (Codex CLI)
+
+AWS credentials must be configured before this action. OpenAI and Anthropic API
+keys are not needed for this provider:
+
+```yaml
+with:
+  github_token: ${{ secrets.GITHUB_TOKEN }}
+  provider: bedrock
+  model: global.openai.gpt-5.6-terra
+  effort: medium
+  aws_region: ap-northeast-2
+```
+
+Uses Codex CLI 0.155.1 with `amazon-bedrock-runtime`, not the Mantle provider
+`amazon-bedrock`. The Runtime provider was verified in Seoul with the existing
+GitHub IAM credentials. The global inference profile does not guarantee that
+inference stays in Seoul. High-review labels preserve the configured Bedrock
+model and effort. Provider errors fail without falling back to a direct API.
+
+Provider regression tests: `python3 scripts/test_bedrock_provider.py`.

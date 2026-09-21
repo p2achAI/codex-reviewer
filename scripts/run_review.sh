@@ -37,6 +37,14 @@ if [ "${PROVIDER}" = "openai" ] && [ "${MODEL}" = "claude-opus-4-6" ]; then
   MODEL="gpt-5-mini"
 fi
 
+case "${PROVIDER}" in
+  claude|openai|bedrock) ;;
+  *) echo "Unsupported provider: ${PROVIDER}" >&2; exit 2 ;;
+esac
+if [ "${PROVIDER}" = "bedrock" ] && [ "${MODEL}" = "claude-opus-4-6" ]; then
+  MODEL="global.openai.gpt-5.6-terra"
+fi
+
 # Validate API key for the selected provider
 if [ "${PROVIDER}" = "openai" ] && [ -z "${OPENAI_API_KEY:-}" ]; then
   echo "OPENAI_API_KEY is required when provider=openai" >&2
@@ -141,7 +149,7 @@ esac
 if [ "${TRIGGER_LABEL}" = "${HIGH_LABEL}" ]; then
   if [ "${PROVIDER}" = "claude" ]; then
     MODEL="claude-opus-4-6"
-  else
+  elif [ "${PROVIDER}" = "openai" ]; then
     MODEL="codex-5.4"
     CODEX_EFFORT="xhigh"
   fi
@@ -172,8 +180,13 @@ if [ "${PROVIDER}" = "claude" ]; then
   "${CLAUDE_BIN}" -p --model "${MODEL}" --effort "${EFFORT}" --dangerously-skip-permissions < prompt.txt > review.md
 else
   CODEX_ARGS=(exec -m "${MODEL}" -o review.md)
-  if [ -n "${CODEX_EFFORT:-}" ]; then
-    CODEX_ARGS+=(--reasoning-effort "${CODEX_EFFORT}")
+  if [ "${PROVIDER}" = "bedrock" ]; then
+    # Native AWS SDK authentication; never fall back to a direct API provider.
+    CODEX_ARGS+=(-c 'model_provider="amazon-bedrock-runtime"')
+    CODEX_ARGS+=(-c "model_providers.amazon-bedrock-runtime.aws.region=\"${BEDROCK_REGION:-ap-northeast-2}\"")
+    CODEX_ARGS+=(-c "model_reasoning_effort=\"${EFFORT}\"")
+  elif [ -n "${CODEX_EFFORT:-}" ]; then
+    CODEX_ARGS+=(-c "model_reasoning_effort=\"${CODEX_EFFORT}\"")
   fi
   case "${CODEX_EXEC_MODE}" in
     ci)
